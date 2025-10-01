@@ -1,0 +1,46 @@
+# .gitignore for Avalonia C# projects
+
+# Build results
+bin/
+obj/
+
+# User-specific files
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Visual Studio Code
+.vscode/
+
+# Rider
+.idea/
+*.sln.iml
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# NuGet packages
+*.nupkg
+# The packages folder can be ignored if you use PackageReference
+packages/
+# Uncomment if you have tasks that create the project's static files in wwwroot
+#wwwroot/
+
+# Avalonia specific
+# Ignore generated XAML code-behind files if present
+*.g.cs
+*.g.i.cs
+
+# Logs
+*.log
+
+# Others
+*.vspscc
+*.vssscc
+_ReSharper*/
+[Tt]est[Rr]esult*/
+
+# Optional: ignore publish output
+publish/
