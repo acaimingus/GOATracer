@@ -5,5 +5,5 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="cs_raytracer.MainWindow"
         Title="cs_raytracer">
-    Welcome to Avalonia!
+    <Button Content="Import" Click="ImportButtonClicked"/>
 </Window>
