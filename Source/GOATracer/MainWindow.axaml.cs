@@ -1,6 +1,6 @@
 using Avalonia.Controls;
 
-namespace cs_raytracer;
+namespace GOATracer;
 
 public partial class MainWindow : Window
 {

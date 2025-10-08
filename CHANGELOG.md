@@ -5,16 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## 2025-08-10
 
 ### Added
 
-- TODO
+- Added the vision document (#GT-4)
 
 ### Changed
 
-- TODO
-
-### Removed
-
-- TODO
+- Changed the project name to "GOATracer" (#GT-5)
