@@ -1,6 +1,6 @@
 using System.Numerics;
 
-namespace GOATracer.Importer.Obj.Helpers;
+namespace GOATracer.Descriptions;
 
 /// <summary>
 /// Represents a single point in 3D space that defines part of a 3D model's geometry.

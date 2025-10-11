@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GOATracer.Importer.Obj.Helpers;
+namespace GOATracer.Descriptions;
 
 /// <summary>
 /// Represents the complete 3D scene imported from a .obj file, containing all geometry data

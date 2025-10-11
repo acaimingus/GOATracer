@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GOATracer.Importer.Obj.Helpers;
+namespace GOATracer.Descriptions;
 
 /// <summary>
 /// Represents a single 3D object within a scene, containing its name and geometric surface data.

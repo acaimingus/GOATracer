@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Numerics;
-using GOATracer.Importer.Obj.Helpers;
+using GOATracer.Descriptions;
 
 namespace GOATracer.Importer.Obj;
 

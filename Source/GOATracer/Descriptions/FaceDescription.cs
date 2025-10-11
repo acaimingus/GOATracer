@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GOATracer.Importer.Obj.Helpers;
+namespace GOATracer.Descriptions;
 
 /// <summary>
 /// Represents a polygon face in 3D space by defining which vertices are connected together.
