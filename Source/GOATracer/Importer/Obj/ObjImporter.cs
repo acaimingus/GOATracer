@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Numerics;
 using GOATracer.Importer.Obj.Helpers;
 
 namespace GOATracer.Importer.Obj;
@@ -58,15 +59,15 @@ public class ObjImporter
                         var splitStringCoordinates = coordinatesOnly.Split(' ');
                         
                         // Convert coordinate strings to numbers
-                        var coordinates = new double[3];
+                        var coordinates = new float[3];
                         
                         // Use InvariantCulture to handle decimal points correctly regardless of system locale
-                        coordinates[0] = double.Parse(splitStringCoordinates[0], CultureInfo.InvariantCulture);
-                        coordinates[1] = double.Parse(splitStringCoordinates[1], CultureInfo.InvariantCulture);
-                        coordinates[2] = double.Parse(splitStringCoordinates[2], CultureInfo.InvariantCulture);
+                        coordinates[0] = float.Parse(splitStringCoordinates[0], CultureInfo.InvariantCulture);
+                        coordinates[1] = float.Parse(splitStringCoordinates[1], CultureInfo.InvariantCulture);
+                        coordinates[2] = float.Parse(splitStringCoordinates[2], CultureInfo.InvariantCulture);
                         
                         // Store this vertex in our scene's master vertex list
-                        sceneDescription.VertexPoints?.Add(new VertexPoint(coordinates));
+                        sceneDescription.VertexPoints?.Add(new VertexPoint(new Vector3(coordinates[0], coordinates[1], coordinates[2])));
                         break;
                     // Face command found
                     case "f":

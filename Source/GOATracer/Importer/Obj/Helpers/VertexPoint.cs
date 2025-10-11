@@ -1,3 +1,5 @@
+using System.Numerics;
+
 namespace GOATracer.Importer.Obj.Helpers;
 
 /// <summary>
@@ -5,31 +7,20 @@ namespace GOATracer.Importer.Obj.Helpers;
 /// Vertices are the building blocks that get connected by faces to form the surface of 3D objects.
 /// Immutable once created to ensure coordinate data integrity during ray tracing calculations.
 /// </summary>
-/// <param name="coordinates">Array containing [x, y, z] coordinates in 3D world space</param>
-public class VertexPoint(double[] coordinates)
+/// <param name="vector">Vector3 containing [x, y, z] coordinates in 3D world space</param>
+public class VertexPoint(Vector3 vector)
 {
     /// <summary>
-    /// X-axis position in 3D world space (typically left/right movement)
+    /// 3-dimensional vector describing the [x, y, z] coordinates of the point.
     /// </summary>
-    private readonly double _x = coordinates[0];
-    
+    private readonly Vector3 _coordinates = vector; 
+        
     /// <summary>
-    /// Y-axis position in 3D world space (typically up/down movement)
+    /// Method to query the coordinates of the vertex point.
     /// </summary>
-    private readonly double _y = coordinates[1];
-    
-    /// <summary>
-    /// Z-axis position in 3D world space (typically forward/backward depth)
-    /// </summary>
-    private readonly double _z = coordinates[2];
-
-    /// <summary>
-    /// Retrieves the complete 3D coordinates of this vertex point.
-    /// Used by rendering systems and face definitions to access position data.
-    /// </summary>
-    /// <returns>Array containing [x, y, z] coordinates in that exact order</returns>
-    public double[] GetCoordinates()
+    /// <returns>[x, y, z] coordinates of the vertex point.</returns>
+    public Vector3 GetCoordinates()
     {
-        return [_x, _y, _z];
+        return _coordinates;
     }
 }
