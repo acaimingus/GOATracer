@@ -1,5 +1,7 @@
 using System;
+using System.Globalization;
 using System.IO;
+using System.Numerics;
 using System.Text;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -7,11 +9,14 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using GOATracer.Descriptions;
 using GOATracer.Importer.Obj;
+using GOATracer.Preview;
 
 namespace GOATracer;
 
 public partial class MainWindow : Window
 {
+    private SceneDescription? _currentSceneDescription;
+    
     public MainWindow()
     {
         InitializeComponent();
@@ -52,16 +57,16 @@ public partial class MainWindow : Window
             
             // Import the .obj file and convert it into our scene data structure
             var objImporter = new ObjImporter();
-            var sceneDescription = objImporter.ImportModel(filePath);
-
+            _currentSceneDescription = objImporter.ImportModel(filePath);
+            
             // Set the import stats
             LoadedFilePathLabel.Content = $"Loaded file: { filePath }";
             FileSizeLabel.Content = $"File size: { new FileInfo(filePath).Length } bytes";
-            VertexCountLabel.Content = $"Vertex count: {sceneDescription.VertexPoints?.Count ?? 0}";
+            VertexCountLabel.Content = $"Vertex count: {_currentSceneDescription.VertexPoints?.Count ?? 0}";
             MaterialCountLabel.Content = "Material count: 0";
             
             // Output detailed information about the imported 3D model for debugging
-            PrintDebugInfo(sceneDescription);
+            PrintDebugInfo(_currentSceneDescription);
         }
     }
 
@@ -107,9 +112,8 @@ public partial class MainWindow : Window
                 }
             }
         }
-
         stringBuilder.AppendLine("=== END DESCRIPTION ===\n");
-
+        
         LogOutputTextBlock.Text = stringBuilder.ToString();
     }
 
@@ -122,5 +126,24 @@ public partial class MainWindow : Window
     {
         // Close the app
         this.Close();
+    }
+
+    private void RenderButtonClicked(object? sender, RoutedEventArgs e)
+    {
+        if (_currentSceneDescription != null)
+        {
+            var cam = new Camera
+            {
+                Position = new Vector3(Convert.ToSingle(XPositionTextBox.Text, CultureInfo.InvariantCulture), Convert.ToSingle(YPositionTextBox.Text, CultureInfo.InvariantCulture), Convert.ToSingle(ZPositionTextBox.Text, CultureInfo.InvariantCulture)),
+                Rotation = new Vector3(Convert.ToSingle(XRotationTextBox.Text, CultureInfo.InvariantCulture), Convert.ToSingle(YRotationTextBox.Text, CultureInfo.InvariantCulture), Convert.ToSingle(ZRotationTextBox.Text, CultureInfo.InvariantCulture)),
+                Aspect = Convert.ToSingle(ImageWidthTextBox.Text) / Convert.ToSingle(ImageHeightTextBox.Text)  
+            };
+
+            RenderResult.Source = SimpleRenderer.RenderWireframe(_currentSceneDescription, cam, Convert.ToInt32(ImageWidthTextBox.Text), Convert.ToInt32(ImageHeightTextBox.Text));
+        }
+        else
+        {
+            Console.WriteLine("No scene loaded.");
+        }
     }
 }
