@@ -139,7 +139,12 @@ public partial class MainWindow : Window
                 Aspect = Convert.ToSingle(ImageWidthTextBox.Text) / Convert.ToSingle(ImageHeightTextBox.Text)  
             };
 
-            RenderResult.Source = SimpleRenderer.RenderWireframe(_currentSceneDescription, cam, Convert.ToInt32(ImageWidthTextBox.Text), Convert.ToInt32(ImageHeightTextBox.Text));
+            RenderPreview.SetScene(_currentSceneDescription, cam);
+            RenderPreview.RequestNextFrameRendering();
+
+            // RenderResult.Source = SimpleRenderer.RenderWireframe(_currentSceneDescription, cam, Convert.ToInt32(ImageWidthTextBox.Text), Convert.ToInt32(ImageHeightTextBox.Text));
+            // new preview:
+            // RenderResult.Source = PreviewRenderer.Render(_currentSceneDescription, cam, Convert.ToInt32(ImageWidthTextBox.Text), Convert.ToInt32(ImageHeightTextBox.Text));
         }
         else
         {
