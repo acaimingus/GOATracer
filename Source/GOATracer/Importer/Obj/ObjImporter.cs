@@ -2,24 +2,23 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Numerics;
-using GOATracer.Descriptions;
 
 namespace GOATracer.Importer.Obj;
 
-public class ObjImporter
+public static class ObjImporter
 {
     /// <summary>
-    /// Parses a Wavefront .obj file and converts it into our internal 3D scene representation
+    /// Parses a Wavefront .obj file and converts it into the internal 3D scene representation
     /// </summary>
     /// <param name="filePath">Path to the .obj file to import</param>
-    /// <returns>SceneDescription containing all vertices, faces, and objects from the file</returns>
-    public SceneDescription ImportModel(string? filePath)
+    /// <returns>ImportedSceneDescription containing all vertices, faces, and objects from the file</returns>
+    public static ImportedSceneDescription ImportModel(string filePath)
     {
         // Parse the .obj file and separate it into individual 3D objects
         var wavefrontObjects = SplitFileByObjects(filePath);
 
         // Create a description for the scene
-        var sceneDescription = new SceneDescription(Path.GetFileName(filePath));
+        var sceneDescription = new ImportedSceneDescription(Path.GetFileName(filePath));
         
         // Process each 3D object found in the file
         foreach (var wavefrontObject in wavefrontObjects)
@@ -48,7 +47,7 @@ public class ObjImporter
                     case "o":
                         // Object name definition - extract everything after "o "
                         var nameOnly = line[(firstSpaceIndex + 1)..];
-                        objectDescription.objectName = nameOnly;
+                        objectDescription.ObjectName = nameOnly;
                         break;
                     // Vertex command found
                     case "v":
@@ -87,7 +86,7 @@ public class ObjImporter
                         }
                         
                         // Add this face to the current object
-                        objectDescription.FacePoints.Add(new FaceDescription(indices));
+                        objectDescription.FacePoints.Add(new ObjectFace(indices));
                         break;
                 }
             }
@@ -104,7 +103,7 @@ public class ObjImporter
     /// </summary>
     /// <param name="filePath">Path to the .obj file to process</param>
     /// <returns>List of line groups, where each group contains all data for one 3D object</returns>
-    private List<List<string>> SplitFileByObjects(string filePath)
+    private static List<List<string>> SplitFileByObjects(string filePath)
     {
                 
         // Open the file for reading

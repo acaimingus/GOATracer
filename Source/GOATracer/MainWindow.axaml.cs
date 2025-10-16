@@ -1,11 +1,9 @@
-using System;
 using System.IO;
 using System.Text;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
-using GOATracer.Descriptions;
 using GOATracer.Importer.Obj;
 
 namespace GOATracer;
@@ -51,8 +49,7 @@ public partial class MainWindow : Window
             await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
             
             // Import the .obj file and convert it into our scene data structure
-            var objImporter = new ObjImporter();
-            var sceneDescription = objImporter.ImportModel(filePath);
+            var sceneDescription = ObjImporter.ImportModel(filePath);
 
             // Set the import stats
             LoadedFilePathLabel.Content = $"Loaded file: { filePath }";
@@ -65,34 +62,38 @@ public partial class MainWindow : Window
         }
     }
 
-    private void PrintDebugInfo(SceneDescription sceneDescription)
+    /// <summary>
+    /// Debug method for printing out the imported data structure
+    /// </summary>
+    /// <param name="importedSceneDescription"></param>
+    private void PrintDebugInfo(ImportedSceneDescription importedSceneDescription)
     {
         var stringBuilder = new  StringBuilder();
         
         stringBuilder.AppendLine("=== SCENE DESCRIPTION ===");
-        stringBuilder.AppendLine($"File Name: {sceneDescription.FileName}");
-        stringBuilder.AppendLine($"Total Vertices: {sceneDescription.VertexPoints?.Count ?? 0}");
-        stringBuilder.AppendLine($"Total Objects: {sceneDescription.ObjectDescriptions?.Count ?? 0}");
+        stringBuilder.AppendLine($"File Name: {importedSceneDescription.FileName}");
+        stringBuilder.AppendLine($"Total Vertices: {importedSceneDescription.VertexPoints?.Count ?? 0}");
+        stringBuilder.AppendLine($"Total Objects: {importedSceneDescription.ObjectDescriptions?.Count ?? 0}");
 
         // Print vertex points
         stringBuilder.AppendLine("\n--- VERTEX POINTS ---");
-        if (sceneDescription.VertexPoints != null)
+        if (importedSceneDescription.VertexPoints != null)
         {
-            for (int i = 0; i < sceneDescription.VertexPoints.Count; i++)
+            for (int i = 0; i < importedSceneDescription.VertexPoints.Count; i++)
             {
-                var coords = sceneDescription.VertexPoints[i].GetCoordinates();
+                var coords = importedSceneDescription.VertexPoints[i].Coordinates;
                 stringBuilder.AppendLine($"Vertex {i + 1}: ({coords[0]:F3}, {coords[1]:F3}, {coords[2]:F3})");
             }
         }
 
         // Print object descriptions
         stringBuilder.AppendLine("\n--- OBJECTS ---");
-        if (sceneDescription.ObjectDescriptions != null)
+        if (importedSceneDescription.ObjectDescriptions != null)
         {
-            for (int i = 0; i < sceneDescription.ObjectDescriptions.Count; i++)
+            for (int i = 0; i < importedSceneDescription.ObjectDescriptions.Count; i++)
             {
-                var obj = sceneDescription.ObjectDescriptions[i];
-                stringBuilder.AppendLine($"Object {i + 1}: {obj.objectName ?? "Unnamed"}");
+                var obj = importedSceneDescription.ObjectDescriptions[i];
+                stringBuilder.AppendLine($"Object {i + 1}: {obj.ObjectName ?? "Unnamed"}");
                 stringBuilder.AppendLine($"  Faces: {obj.FacePoints?.Count ?? 0}");
 
                 // Print face indices
