@@ -2,7 +2,7 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 
-namespace cs_raytracer;
+namespace GOATracer;
 
 public partial class App : Application
 {
