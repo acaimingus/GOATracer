@@ -24,6 +24,5 @@
 
     <ItemGroup>
       <Folder Include="Importer\Obj\Helpers\" />
-      <Folder Include="Shaders\" />
     </ItemGroup>
 </Project>
