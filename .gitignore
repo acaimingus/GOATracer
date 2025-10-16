@@ -44,3 +44,5 @@ _ReSharper*/
 
 # Optional: ignore publish output
 publish/
+/.vs/GOATracer/v17
+/Source/GOATracer/.vs/GOATracer
