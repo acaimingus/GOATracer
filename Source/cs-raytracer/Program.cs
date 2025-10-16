@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using System;
 
-namespace GOATracer;
+namespace cs_raytracer;
 
 class Program
 {

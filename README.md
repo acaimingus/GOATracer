@@ -1,5 +1,5 @@
 
-# GOATracer
+# cs-raytracer
 
 A simple raytracer written in C#.
 
