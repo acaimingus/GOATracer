@@ -16,7 +16,8 @@ namespace GOATracer;
 public partial class MainWindow : Window
 {
     private SceneDescription? _currentSceneDescription;
-    
+    private readonly Camera _previewCamera = new();
+
     public MainWindow()
     {
         InitializeComponent();
@@ -67,6 +68,12 @@ public partial class MainWindow : Window
             
             // Output detailed information about the imported 3D model for debugging
             PrintDebugInfo(_currentSceneDescription);
+
+            // --- Automatically set the scene in the preview after importing ---
+            if (_currentSceneDescription != null)
+            {
+                RenderPreview.SetScene(_currentSceneDescription, _previewCamera);
+            }
         }
     }
 
@@ -130,31 +137,21 @@ public partial class MainWindow : Window
 
     private void RenderButtonClicked(object? sender, RoutedEventArgs e)
     {
-        if (_currentSceneDescription != null)
+        try
         {
-            // Aspect anhand der Preview-Control bestimmen (für die Vorschau genauer)
-            var w = Math.Max(1.0, RenderPreview.Bounds.Width);
-            var h = Math.Max(1.0, RenderPreview.Bounds.Height);
+            _previewCamera.Position = new Vector3(
+                Convert.ToSingle(XPositionTextBox.Text, CultureInfo.InvariantCulture),
+                Convert.ToSingle(YPositionTextBox.Text, CultureInfo.InvariantCulture),
+                Convert.ToSingle(ZPositionTextBox.Text, CultureInfo.InvariantCulture));
 
-            var cam = new Camera
-            {
-                Position = new System.Numerics.Vector3(
-                    Convert.ToSingle(XPositionTextBox.Text, CultureInfo.InvariantCulture),
-                    Convert.ToSingle(YPositionTextBox.Text, CultureInfo.InvariantCulture),
-                    Convert.ToSingle(ZPositionTextBox.Text, CultureInfo.InvariantCulture)),
-                Rotation = new System.Numerics.Vector3(
-                    Convert.ToSingle(XRotationTextBox.Text, CultureInfo.InvariantCulture),
-                    Convert.ToSingle(YRotationTextBox.Text, CultureInfo.InvariantCulture),
-                    Convert.ToSingle(ZRotationTextBox.Text, CultureInfo.InvariantCulture)),
-                Aspect = (float)(w / h)
-            };
-
-            RenderPreview.SetScene(_currentSceneDescription, cam);
-            RenderPreview.RequestNextFrameRendering();
+            _previewCamera.Rotation = new Vector3(
+                Convert.ToSingle(XRotationTextBox.Text, CultureInfo.InvariantCulture),
+                Convert.ToSingle(YRotationTextBox.Text, CultureInfo.InvariantCulture),
+                Convert.ToSingle(ZRotationTextBox.Text, CultureInfo.InvariantCulture));
         }
-        else
+        catch(FormatException fe)
         {
-            Console.WriteLine("No scene loaded.");
+            Console.WriteLine("Invalid number format in camera settings.");
         }
     }
 }
