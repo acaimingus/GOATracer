@@ -94,7 +94,7 @@ public partial class MainWindow : Window
         {
             for (int i = 0; i < importedSceneDescription.VertexPoints.Count; i++)
             {
-                var coords = importedSceneDescription.VertexPoints[i].Coordinates;
+                var coords = importedSceneDescription.VertexPoints[i];
                 stringBuilder.AppendLine($"Vertex {i + 1}: ({coords[0]:F3}, {coords[1]:F3}, {coords[2]:F3})");
             }
         }

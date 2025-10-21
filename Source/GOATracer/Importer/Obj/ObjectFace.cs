@@ -6,20 +6,16 @@ namespace GOATracer.Importer.Obj;
 /// Represents a polygon face in 3D space by defining which vertices are connected together.
 /// Each face is typically a triangle or quad that forms part of a 3D object's surface.
 /// Source: https://paulbourke.net/dataformats/obj/obj_spec.pdf
-/// Source: https://paulbourke.net/dataformats/mtl/
 /// </summary>
 public class ObjectFace
 {
-    /// <summary>
-    /// List of vertex indices that define this face/polygon.
-    /// </summary>
-    public readonly List<int> Indices;
+    public readonly List<FaceVertex> Indices;
 
     /// <summary>
     /// Constructor: Creates a new face definition with the specified vertex connections
     /// </summary>
     /// <param name="indices">The vertex indices that should be connected to form this face</param>
-    public ObjectFace(List<int> indices)
+    public ObjectFace(List<FaceVertex> indices)
     {
         this.Indices = indices;
     }

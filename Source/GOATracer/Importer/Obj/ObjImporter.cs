@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -8,7 +9,6 @@ namespace GOATracer.Importer.Obj;
 /// <summary>
 /// Class for importing 3d geometry contents from an .obj file.
 /// Source: https://paulbourke.net/dataformats/obj/obj_spec.pdf
-/// Source: https://paulbourke.net/dataformats/mtl/
 /// </summary>
 public static class ObjImporter
 {
@@ -24,7 +24,7 @@ public static class ObjImporter
 
         // Create a description for the scene
         var sceneDescription = new ImportedSceneDescription(Path.GetFileName(filePath));
-        
+
         // Process each 3D object found in the file
         foreach (var wavefrontObject in wavefrontObjects)
         {
@@ -41,7 +41,7 @@ public static class ObjImporter
 
                 // Get the position of the first space to determine where the first word ends
                 var firstSpaceIndex = line.IndexOf(' ');
-                
+
                 // Extract the .obj command type (o, v, f, etc.)
                 var firstWord = line.Substring(0, firstSpaceIndex);
 
@@ -50,57 +50,99 @@ public static class ObjImporter
                 {
                     // Object command found
                     case "o":
-                        // Object name definition - extract everything after "o "
+                        // Extract the name for the object
                         var nameOnly = line[(firstSpaceIndex + 1)..];
                         objectDescription.ObjectName = nameOnly;
                         break;
+
                     // Vertex command found
                     case "v":
-                        // Vertex definition - parse 3D coordinates (x, y, z)
-                        var coordinatesOnly = line[(firstSpaceIndex + 1)..];
-                        
-                        // Split "x y z" into individual coordinate strings
-                        var splitStringCoordinates = coordinatesOnly.Split(' ');
-                        
-                        // Convert coordinate strings to numbers
-                        var coordinates = new float[3];
-                        
-                        // Use InvariantCulture to handle decimal points correctly regardless of system locale
-                        coordinates[0] = float.Parse(splitStringCoordinates[0], CultureInfo.InvariantCulture);
-                        coordinates[1] = float.Parse(splitStringCoordinates[1], CultureInfo.InvariantCulture);
-                        coordinates[2] = float.Parse(splitStringCoordinates[2], CultureInfo.InvariantCulture);
-                        
                         // Store this vertex in our scene's master vertex list
-                        sceneDescription.VertexPoints?.Add(new VertexPoint(new Vector3(coordinates[0], coordinates[1], coordinates[2])));
+                        sceneDescription.VertexPoints?.Add(ParseVector3(line, firstSpaceIndex));
                         break;
+
+                    // Normal command found
+                    case "vn":
+                        // Extract the coordinates for the normal and add them to the master normal list
+                        sceneDescription.NormalPoints?.Add(ParseVector3(line, firstSpaceIndex));
+                        break;
+
+                    // Texture command found
+                    case "vt":
+                        // Extract the coordinates for the texture point and add them to the master texture point list
+                        sceneDescription.TexturePoints?.Add(ParseVector3(line, firstSpaceIndex));
+                        break;
+                    
                     // Face command found
                     case "f":
                         // Face definition - defines which vertices connect to form a polygon
                         var indicesOnly = line[(firstSpaceIndex + 1)..];
-                        
+
                         // Split into individual vertex references
                         var splitStringIndices = indicesOnly.Split(' ');
                         
-                        var indices = new List<int>();
+                        var indices = new List<FaceVertex>();
 
                         // Extract just the vertex indices (ignore texture/normal data after '/')
                         foreach (var index in splitStringIndices)
                         {
+                            // Split the given indices by their separator
                             var vertexIndexOnly = index.Split('/');
-                            indices.Add(int.Parse(vertexIndexOnly[0]));
+                            
+                            // Use TryParse for robust parsing. If parsing fails, the value will be null.
+                            // Check the length of the array for the second and third element to avoid OutOfRange exceptions.
+                            var vertexIndex = int.Parse(vertexIndexOnly[0]);
+                            int? textureIndex = vertexIndexOnly.Length > 1 && int.TryParse(vertexIndexOnly[1], out var v1) ? v1 : null;
+                            int? normalIndex = vertexIndexOnly.Length > 2 && int.TryParse(vertexIndexOnly[2], out var v2) ? v2 : null;
+                            
+                            indices.Add(new FaceVertex(vertexIndex, textureIndex, normalIndex));
                         }
-                        
+
                         // Add this face to the current object
                         objectDescription.FacePoints.Add(new ObjectFace(indices));
                         break;
                 }
             }
-            
+
             // Add this completed object to our scene
             sceneDescription.ObjectDescriptions?.Add(objectDescription);
         }
-        
+
         return sceneDescription;
+    }
+
+    /// <summary>
+    /// Helper method for handling the parsing of 3 coordinate Vertex points.
+    /// Used for elements like v and vn.
+    /// </summary>
+    /// <param name="line">The line of the file to be taken apart</param>
+    /// <param name="firstSpaceIndex">The index of where the tag of the line ends</param>
+    /// <returns>A VertexPoint with the needed coordinates</returns>
+    private static Vector3 ParseVector3(string line, int firstSpaceIndex)
+    {
+        // Vertex definition - parse 3D coordinates (x, y, z)
+        var coordinatesOnly = line[(firstSpaceIndex + 1)..];
+
+        // Split "x y z" into individual coordinate strings
+        var splitStringCoordinates = coordinatesOnly.Split(' ');
+
+        // Convert coordinate strings to numbers
+        var coordinates = new float[3];
+
+        // Use TryParse to have a more robust parsing of the coordinates. If a coordinate is invalid, then it will be 0.0.
+        // Use NumberStyles for 
+        // Use InvariantCulture to handle decimal points correctly regardless of system locale.
+        for (var i = 0; i < Math.Min(splitStringCoordinates.Length, 3); i++)
+        {
+            float.TryParse(
+                splitStringCoordinates[i],
+                NumberStyles.Float,
+                CultureInfo.InvariantCulture,
+                out coordinates[i]
+            );
+        }
+
+        return new Vector3(coordinates);
     }
 
     /// <summary>
@@ -110,18 +152,17 @@ public static class ObjImporter
     /// <returns>List of line groups, where each group contains all data for one 3D object</returns>
     private static List<List<string>> SplitFileByObjects(string filePath)
     {
-                
         // Open the file for reading
         // Source: https://learn.microsoft.com/de-de/dotnet/api/system.io.streamreader?view=net-8.0
         using var streamReader = new StreamReader(filePath);
-        
+
         // Track how many objects we've found
         var objectCount = 0;
         // Store each object as a separate list of lines
         var objects = new List<List<string>>();
         // Collect lines for the current object being processed
         var currentFileSection = new List<string>();
-        
+
         // Process the file line by line
         string? line;
         while ((line = streamReader.ReadLine()) != null)
@@ -129,12 +170,12 @@ public static class ObjImporter
             // Skip empty lines
             if (string.IsNullOrEmpty(line))
             {
-                continue;    
+                continue;
             }
-            
+
             // Check what type of .obj command this line contains
             var firstWord = line.Substring(0, line.IndexOf(' '));
-            
+
             // "o" command starts a new 3D object definition
             if (firstWord == "o")
             {
@@ -142,18 +183,19 @@ public static class ObjImporter
                 if (objectCount != 0)
                 {
                     objects.Add(currentFileSection);
-                    
                 }
+
                 // Up the object count
                 ++objectCount;
-                
+
                 // Start collecting lines for this new object
                 currentFileSection = [];
             }
-            
+
             // Add this line to the current object's data
             currentFileSection.Add(line);
         }
+
         // Don't forget to add the final object when we reach the end of the file
         objects.Add(currentFileSection);
 
