@@ -8,19 +8,32 @@ using GOATracer.Importer.Obj;
 
 namespace GOATracer;
 
+/// <summary>
+/// Code behind for the main window.
+/// </summary>
 public partial class MainWindow : Window
 {
+    /// <summary>
+    /// Constructor
+    /// </summary>
     public MainWindow()
     {
         InitializeComponent();
     }
 
-    private async void ImportOptionClicked(object? sender, RoutedEventArgs e)
+    /// <summary>
+    /// Handler method for the Import option
+    /// </summary>
+    /// <param name="sender">Import option in the menu bar at the top</param>
+    /// <param name="eventData">Event data</param>
+    private async void ImportOptionClicked(object? sender, RoutedEventArgs eventData)
     {
         // Get the parent window to enable file dialog access
+        // Source: https://docs.avaloniaui.net/docs/basics/user-interface/file-dialogs
         var topLevel = TopLevel.GetTopLevel(this);
-
+        
         // Show file picker dialog to let user select a .obj file to import
+        // Source: https://docs.avaloniaui.net/docs/concepts/services/storage-provider/file-picker-options
         var files = await topLevel!.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
         {
             Title = "Open .obj File",

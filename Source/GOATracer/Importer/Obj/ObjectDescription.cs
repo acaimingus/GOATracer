@@ -4,6 +4,7 @@ namespace GOATracer.Importer.Obj;
 
 /// <summary>
 /// Represents a single 3D object within a scene, containing its name and geometric surface data.
+/// Source: https://paulbourke.net/dataformats/obj/obj_spec.pdf
 /// </summary>
 public class ObjectDescription
 {

@@ -5,6 +5,11 @@ using System.Numerics;
 
 namespace GOATracer.Importer.Obj;
 
+/// <summary>
+/// Class for importing 3d geometry contents from an .obj file.
+/// Source: https://paulbourke.net/dataformats/obj/obj_spec.pdf
+/// Source: https://paulbourke.net/dataformats/mtl/
+/// </summary>
 public static class ObjImporter
 {
     /// <summary>
@@ -107,6 +112,7 @@ public static class ObjImporter
     {
                 
         // Open the file for reading
+        // Source: https://learn.microsoft.com/de-de/dotnet/api/system.io.streamreader?view=net-8.0
         using var streamReader = new StreamReader(filePath);
         
         // Track how many objects we've found

@@ -6,6 +6,8 @@ namespace GOATracer.Importer.Obj;
 /// Represents the complete 3D scene imported from a .obj file, containing all geometry data
 /// needed for rendering. Acts as the root container that holds all vertices and objects
 /// that make up the entire 3D scene.
+/// Source: https://paulbourke.net/dataformats/obj/obj_spec.pdf
+/// Source: https://paulbourke.net/dataformats/mtl/
 /// </summary>
 public class ImportedSceneDescription
 {

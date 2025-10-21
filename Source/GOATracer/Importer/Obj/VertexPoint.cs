@@ -4,6 +4,7 @@ namespace GOATracer.Importer.Obj;
 
 /// <summary>
 /// Represents a single point in 3D space that defines part of a 3D model's geometry.
+/// Source: https://paulbourke.net/dataformats/obj/obj_spec.pdf
 /// </summary>
 public class VertexPoint
 {
