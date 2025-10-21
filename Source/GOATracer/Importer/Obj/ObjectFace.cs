@@ -9,7 +9,7 @@ namespace GOATracer.Importer.Obj;
 /// </summary>
 public class ObjectFace
 {
-    public readonly List<FaceVertex> Indices;
+    public List<FaceVertex> Indices { get; }
 
     /// <summary>
     /// Constructor: Creates a new face definition with the specified vertex connections

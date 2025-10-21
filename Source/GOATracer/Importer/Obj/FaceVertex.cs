@@ -9,19 +9,19 @@ public class FaceVertex
     /// <summary>
     /// Vertex index from the master list.
     /// </summary>
-    public readonly int VertexIndex;
-    
+    public int VertexIndex { get; }
+
     /// <summary>
     /// Texture index from the master list.
     /// Can be null if not present.
     /// </summary>
-    public readonly int? TextureIndex;
-    
+    public int? TextureIndex { get; }
+
     /// <summary>
     /// Normal index from the master list.
     /// Can be null if not present.
     /// </summary>
-    public readonly int? NormalIndex;
+    public int? NormalIndex { get; }
 
     /// <summary>
     /// Constructor

@@ -14,28 +14,28 @@ public class ImportedSceneDescription
     /// <summary>
     /// The original filename of the imported .obj file.
     /// </summary>
-    public readonly string? FileName;
-    
+    public string? FileName { get; }
+
     /// <summary>
     /// Collection of all 3D objects in the scene, each containing their own faces and geometry.
     /// Objects are typically named groups within the .obj file (e.g., "Cube", "Sphere").
     /// </summary>
-    public readonly List<ObjectDescription>? ObjectDescriptions;
-    
+    public List<ObjectDescription>? ObjectDescriptions { get; }
+
     /// <summary>
     /// Master list of all vertex points in the scene describing the points of the geometry.
     /// </summary>
-    public readonly List<Vector3> VertexPoints;
-    
+    public List<Vector3> VertexPoints { get; }
+
     /// <summary>
     /// Master list of all normal points in the scene describing the normals of the geometry.
     /// </summary>
-    public readonly List<Vector3> NormalPoints;
-    
+    public List<Vector3> NormalPoints { get; }
+
     /// <summary>
     /// Master list of all texture points in the scene describing the mapping of images to the geometry.
     /// </summary>
-    public readonly List<Vector3> TexturePoints;
+    public List<Vector3> TexturePoints { get; }
 
     public Dictionary<string, ObjectMaterial> Materials { get; }
 

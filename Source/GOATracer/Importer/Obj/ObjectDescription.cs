@@ -13,12 +13,12 @@ public class ObjectDescription
     /// This corresponds to the "o ObjectName" lines in Wavefront .obj format.
     /// Will be null if no object name was specified in the file.
     /// </summary>
-    public string? ObjectName;
-    
+    public string? ObjectName { get; set; }
+
     /// <summary>
     /// Collection of all faces (triangles/polygons) that make up this object's surface geometry.
     /// </summary>
-    public readonly List<ObjectFace> FacePoints;
+    public List<ObjectFace> FacePoints { get; }
 
     /// <summary>
     /// Initializes a new 3D object with an empty face list, ready to have geometry data added to it.
