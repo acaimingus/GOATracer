@@ -9,6 +9,7 @@ namespace GOATracer.Importer.Obj;
 /// <summary>
 /// Class for importing 3d geometry contents from an .obj file.
 /// Source: https://paulbourke.net/dataformats/obj/obj_spec.pdf
+/// Source: https://paulbourke.net/dataformats/mtl/
 /// </summary>
 public static class ObjImporter
 {
@@ -48,6 +49,13 @@ public static class ObjImporter
                 // Parse different types of .obj file data based on the command
                 switch (firstWord)
                 {
+                    // Material command found
+                    case "mtlib":
+                        var fileNameOnly = line[(firstSpaceIndex + 1)..];
+                        
+                        ImportMaterials(fileNameOnly);
+                        break;
+                    
                     // Object command found
                     case "o":
                         // Extract the name for the object
@@ -109,6 +117,11 @@ public static class ObjImporter
         }
 
         return sceneDescription;
+    }
+    
+    private static void ImportMaterials(string fileName)
+    {
+        
     }
 
     /// <summary>

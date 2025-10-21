@@ -36,7 +36,9 @@ public class ImportedSceneDescription
     /// Master list of all texture points in the scene describing the mapping of images to the geometry.
     /// </summary>
     public readonly List<Vector3> TexturePoints;
-    
+
+    public Dictionary<string, ObjectMaterial> Materials { get; }
+
     /// <summary>
     /// Creates a new scene container and initializes empty collections for vertices and objects.
     /// </summary>
@@ -48,5 +50,6 @@ public class ImportedSceneDescription
         NormalPoints = new List<Vector3>();
         TexturePoints = new List<Vector3>();
         ObjectDescriptions = new List<ObjectDescription>();
+        Materials = new Dictionary<string, ObjectMaterial>();
     }
 }
