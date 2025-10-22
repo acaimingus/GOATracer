@@ -81,50 +81,111 @@ public partial class MainWindow : Window
     /// <param name="importedSceneDescription"></param>
     private void PrintDebugInfo(ImportedSceneDescription importedSceneDescription)
     {
-        var stringBuilder = new  StringBuilder();
+        // Create a StringBuilder to efficiently build the log content
+        var logBuilder = new StringBuilder();
         
-        stringBuilder.AppendLine("=== SCENE DESCRIPTION ===");
-        stringBuilder.AppendLine($"File Name: {importedSceneDescription.FileName}");
-        stringBuilder.AppendLine($"Total Vertices: {importedSceneDescription.VertexPoints?.Count ?? 0}");
-        stringBuilder.AppendLine($"Total Objects: {importedSceneDescription.ObjectDescriptions?.Count ?? 0}");
-
-        // Print vertex points
-        stringBuilder.AppendLine("\n--- VERTEX POINTS ---");
+        // Add scene name and basic information
+        logBuilder.AppendLine($"=== SCENE: {importedSceneDescription.FileName} ===");
+        logBuilder.AppendLine();
+        
+        // Log vertex data
+        logBuilder.AppendLine($"--- VERTICES ({importedSceneDescription.VertexPoints?.Count ?? 0}) ---");
         if (importedSceneDescription.VertexPoints != null)
         {
             for (int i = 0; i < importedSceneDescription.VertexPoints.Count; i++)
             {
-                var coords = importedSceneDescription.VertexPoints[i];
-                stringBuilder.AppendLine($"Vertex {i + 1}: ({coords[0]:F3}, {coords[1]:F3}, {coords[2]:F3})");
+                var vertex = importedSceneDescription.VertexPoints[i];
+                logBuilder.AppendLine($"v[{i}]: ({vertex.X}, {vertex.Y}, {vertex.Z})");
             }
         }
-
-        // Print object descriptions
-        stringBuilder.AppendLine("\n--- OBJECTS ---");
+        logBuilder.AppendLine();
+        
+        // Log normal data
+        logBuilder.AppendLine($"--- NORMALS ({importedSceneDescription.NormalPoints?.Count ?? 0}) ---");
+        if (importedSceneDescription.NormalPoints != null)
+        {
+            for (int i = 0; i < importedSceneDescription.NormalPoints.Count; i++)
+            {
+                var normal = importedSceneDescription.NormalPoints[i];
+                logBuilder.AppendLine($"vn[{i}]: ({normal.X}, {normal.Y}, {normal.Z})");
+            }
+        }
+        logBuilder.AppendLine();
+        
+        // Log texture coordinates
+        logBuilder.AppendLine($"--- TEXTURE COORDS ({importedSceneDescription.TexturePoints?.Count ?? 0}) ---");
+        if (importedSceneDescription.TexturePoints != null)
+        {
+            for (int i = 0; i < importedSceneDescription.TexturePoints.Count; i++)
+            {
+                var tex = importedSceneDescription.TexturePoints[i];
+                logBuilder.AppendLine($"vt[{i}]: ({tex.X}, {tex.Y}, {tex.Z})");
+            }
+        }
+        logBuilder.AppendLine();
+        
+        // Log materials
+        logBuilder.AppendLine($"--- MATERIALS ({importedSceneDescription.Materials?.Count ?? 0}) ---");
+        if (importedSceneDescription.Materials != null)
+        {
+            foreach (var material in importedSceneDescription.Materials)
+            {
+                logBuilder.AppendLine($"Material: {material.Key}");
+                logBuilder.AppendLine($"  - Diffuse: ({material.Value.ColorDiffuse?.X}, {material.Value.ColorDiffuse?.Y}, {material.Value.ColorDiffuse?.Z})");
+                logBuilder.AppendLine($"  - Ambient: ({material.Value.ColorAmbient?.X}, {material.Value.ColorAmbient?.Y}, {material.Value.ColorAmbient?.Z})");
+                logBuilder.AppendLine($"  - Specular: ({material.Value.ColorSpecular?.X}, {material.Value.ColorSpecular?.Y}, {material.Value.ColorSpecular?.Z})");
+                logBuilder.AppendLine($"  - Specular Exponent: {material.Value.SpecularExponent}");
+                logBuilder.AppendLine($"  - Optical Density: {material.Value.OpticalDensity}");
+                logBuilder.AppendLine($"  - Dissolve: {material.Value.Dissolve}");
+                logBuilder.AppendLine($"  - Illumination Model: {material.Value.IlluminationModel}");
+            }
+        }
+        logBuilder.AppendLine();
+        
+        // Log objects
+        logBuilder.AppendLine($"--- OBJECTS ({importedSceneDescription.ObjectDescriptions?.Count ?? 0}) ---");
         if (importedSceneDescription.ObjectDescriptions != null)
         {
-            for (int i = 0; i < importedSceneDescription.ObjectDescriptions.Count; i++)
+            for (int objIndex = 0; objIndex < importedSceneDescription.ObjectDescriptions.Count; objIndex++)
             {
-                var obj = importedSceneDescription.ObjectDescriptions[i];
-                stringBuilder.AppendLine($"Object {i + 1}: {obj.ObjectName ?? "Unnamed"}");
-                stringBuilder.AppendLine($"  Faces: {obj.FacePoints?.Count ?? 0}");
-
-                // Print face indices
-                if (obj.FacePoints != null)
+                var obj = importedSceneDescription.ObjectDescriptions[objIndex];
+                logBuilder.AppendLine($"Object {objIndex}: {obj.ObjectName}");
+                logBuilder.AppendLine($"  - Faces: {obj.FacePoints.Count}");
+                
+                // Log each face in the object
+                for (int faceIndex = 0; faceIndex < obj.FacePoints.Count; faceIndex++)
                 {
-                    for (int j = 0; j < obj.FacePoints.Count; j++)
+                    var face = obj.FacePoints[faceIndex];
+                    logBuilder.Append($"    Face {faceIndex}: Material={face.Material}, Vertices=[");
+                    
+                    // Log each vertex in the face
+                    for (int vIndex = 0; vIndex < face.Indices.Count; vIndex++)
                     {
-                        var face = obj.FacePoints[j];
-                        var indicesStr = string.Join(", ", face.Indices);
-                        stringBuilder.AppendLine($"    Face {j + 1}: [{indicesStr}]");
+                        var vertex = face.Indices[vIndex];
+                        logBuilder.Append($"(v:{vertex.VertexIndex}");
+                        
+                        if (vertex.TextureIndex.HasValue)
+                            logBuilder.Append($", vt:{vertex.TextureIndex}");
+                        
+                        if (vertex.NormalIndex.HasValue)
+                            logBuilder.Append($", vn:{vertex.NormalIndex}");
+                        
+                        logBuilder.Append(")");
+                        
+                        if (vIndex < face.Indices.Count - 1)
+                            logBuilder.Append(", ");
                     }
+                    logBuilder.AppendLine("]");
                 }
+                logBuilder.AppendLine();
             }
         }
-
-        stringBuilder.AppendLine("=== END DESCRIPTION ===\n");
-
-        LogOutputTextBlock.Text = stringBuilder.ToString();
+        
+        // Write the log file to the executable directory
+        File.WriteAllText("import.log", logBuilder.ToString());
+        
+        // Also log to the UI that the debug info was saved
+        LogOutputTextBlock.Text += $"\nDebug info written.";
     }
 
     /// <summary>
