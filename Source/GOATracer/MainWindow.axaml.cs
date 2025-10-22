@@ -68,7 +68,7 @@ public partial class MainWindow : Window
             LoadedFilePathLabel.Content = $"Loaded file: { filePath }";
             FileSizeLabel.Content = $"File size: { new FileInfo(filePath).Length } bytes";
             VertexCountLabel.Content = $"Vertex count: {sceneDescription.VertexPoints?.Count ?? 0}";
-            MaterialCountLabel.Content = "Material count: 0";
+            MaterialCountLabel.Content = $"Material count: { sceneDescription.Materials?.Count ?? 0 }";
             
             // Output detailed information about the imported 3D model for debugging
             PrintDebugInfo(sceneDescription);

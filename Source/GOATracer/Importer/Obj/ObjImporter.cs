@@ -21,7 +21,7 @@ public static class ObjImporter
     public static ImportedSceneDescription ImportModel(string filePath)
     {
         // Parse the .obj file and separate it into individual 3D objects
-        var wavefrontObjects = SplitFileByObjects(filePath);
+        var fileSegments = SplitFileByObjects(filePath);
 
         // Create a description for the scene
         var sceneDescription = new ImportedSceneDescription(Path.GetFileName(filePath));
@@ -29,12 +29,11 @@ public static class ObjImporter
         string? currentlyUsedMaterial = null;
         
         // Process each 3D object found in the file
-        foreach (var wavefrontObject in wavefrontObjects)
+        foreach (var fileSegment in fileSegments)
         {
-            // Create a container for this object's geometry data
             var objectDescription = new ObjectDescription();
 
-            foreach (var line in wavefrontObject)
+            foreach (var line in fileSegment)
             {
                 // Skip empty lines
                 if (string.IsNullOrWhiteSpace(line))
@@ -52,7 +51,7 @@ public static class ObjImporter
                 switch (firstWord)
                 {
                     // Material command found
-                    case "mtlib":
+                    case "mtllib":
                         var fileNameOnly = line[(firstSpaceIndex + 1)..];
                         var mtlFullPath = Path.Combine(Path.GetDirectoryName(filePath)!, fileNameOnly);
                         ImportMaterials(mtlFullPath, sceneDescription);
@@ -118,9 +117,13 @@ public static class ObjImporter
                         break;
                 }
             }
-
-            // Add this completed object to our scene
-            sceneDescription.ObjectDescriptions?.Add(objectDescription);
+            
+            // Check if the object actually is an object (it has a name)
+            if (objectDescription.ObjectName != null)
+            {
+                // Add this completed object to our scene
+                sceneDescription.ObjectDescriptions?.Add(objectDescription);
+            }
         }
 
         return sceneDescription;
@@ -245,6 +248,9 @@ public static class ObjImporter
                     break;
             }
         }
+        
+        // Add the last material too
+        sceneDescription.Materials.Add(currentMaterial.MaterialName, currentMaterial.BuildObjectMaterial());
     }
 
     /// <summary>
@@ -281,11 +287,7 @@ public static class ObjImporter
             // "o" command starts a new 3D object definition
             if (firstWord == "o")
             {
-                // If this isn't the first object, save the previous object's data
-                if (objectCount != 0)
-                {
-                    objects.Add(currentFileSection);
-                }
+                objects.Add(currentFileSection);
 
                 // Up the object count
                 ++objectCount;
