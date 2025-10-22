@@ -36,7 +36,10 @@ public class ImportedSceneDescription
     /// Master list of all texture points in the scene describing the mapping of images to the geometry.
     /// </summary>
     public List<Vector3> TexturePoints { get; }
-
+    
+    /// <summary>
+    /// Master list of all materials available within the scene imported from one or multiple .mtl files.
+    /// </summary>
     public Dictionary<string, ObjectMaterial> Materials { get; }
 
     /// <summary>

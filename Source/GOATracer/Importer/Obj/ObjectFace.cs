@@ -10,13 +10,16 @@ namespace GOATracer.Importer.Obj;
 public class ObjectFace
 {
     public List<FaceVertex> Indices { get; }
+    
+    public string Material { get; }
 
     /// <summary>
     /// Constructor: Creates a new face definition with the specified vertex connections
     /// </summary>
     /// <param name="indices">The vertex indices that should be connected to form this face</param>
-    public ObjectFace(List<FaceVertex> indices)
+    public ObjectFace(List<FaceVertex> indices, string material)
     {
         this.Indices = indices;
+        this.Material = material;
     }
 }

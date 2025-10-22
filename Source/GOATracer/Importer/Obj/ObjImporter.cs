@@ -26,6 +26,8 @@ public static class ObjImporter
         // Create a description for the scene
         var sceneDescription = new ImportedSceneDescription(Path.GetFileName(filePath));
 
+        string? currentlyUsedMaterial = null;
+        
         // Process each 3D object found in the file
         foreach (var wavefrontObject in wavefrontObjects)
         {
@@ -52,8 +54,12 @@ public static class ObjImporter
                     // Material command found
                     case "mtlib":
                         var fileNameOnly = line[(firstSpaceIndex + 1)..];
-                        
-                        ImportMaterials(fileNameOnly);
+                        var mtlFullPath = Path.Combine(Path.GetDirectoryName(filePath)!, fileNameOnly);
+                        ImportMaterials(mtlFullPath, sceneDescription);
+                        break;
+                    
+                    case "usemtl":
+                        currentlyUsedMaterial = line[(firstSpaceIndex + 1)..];
                         break;
                     
                     // Object command found
@@ -99,6 +105,7 @@ public static class ObjImporter
                             
                             // Use TryParse for robust parsing. If parsing fails, the value will be null.
                             // Check the length of the array for the second and third element to avoid OutOfRange exceptions.
+                            // These are currently being saved as 1-based. We will need to check if we make it 0-based here or when actually using the data.
                             var vertexIndex = int.Parse(vertexIndexOnly[0]);
                             int? textureIndex = vertexIndexOnly.Length > 1 && int.TryParse(vertexIndexOnly[1], out var v1) ? v1 : null;
                             int? normalIndex = vertexIndexOnly.Length > 2 && int.TryParse(vertexIndexOnly[2], out var v2) ? v2 : null;
@@ -107,7 +114,7 @@ public static class ObjImporter
                         }
 
                         // Add this face to the current object
-                        objectDescription.FacePoints.Add(new ObjectFace(indices));
+                        objectDescription.FacePoints.Add(new ObjectFace(indices, currentlyUsedMaterial!));
                         break;
                 }
             }
@@ -117,11 +124,6 @@ public static class ObjImporter
         }
 
         return sceneDescription;
-    }
-    
-    private static void ImportMaterials(string fileName)
-    {
-        
     }
 
     /// <summary>
@@ -156,6 +158,93 @@ public static class ObjImporter
         }
 
         return new Vector3(coordinates);
+    }
+
+    private static float ParseFloat(string line, int firstSpaceIndex)
+    {
+        return float.TryParse(line[firstSpaceIndex..], NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ? value : 1.0f;
+    }
+
+    private static void ImportMaterials(string fileName, ImportedSceneDescription sceneDescription)
+    {
+        using var streamReader = new StreamReader(fileName);
+
+        ObjectMaterialBuilder? currentMaterial = null;
+        string? line;
+        
+        while ((line = streamReader.ReadLine()) != null)
+        {
+            // Skip empty lines
+            if (string.IsNullOrEmpty(line))
+            {
+                continue;
+            }
+            
+            var firstSpaceIndex = line.IndexOf(' ');
+            
+            // Check what type of .obj command this line contains
+            var firstWord = line.Substring(0, firstSpaceIndex);
+            
+            switch (firstWord)
+            {
+                // New material command found
+                case "newmtl":
+                    // Unless it's the first time setting newmtl, add the imported material to the material list
+                    if (currentMaterial != null)
+                    {
+                        // Add the material with the imported properties until now
+                        sceneDescription.Materials.Add(currentMaterial.MaterialName, currentMaterial.BuildObjectMaterial());
+                    }
+                    // Create a new Material and give it the material name from the file
+                    currentMaterial = new ObjectMaterialBuilder()
+                    {
+                        MaterialName = line[(firstSpaceIndex + 1)..]
+                    };
+                    break;
+                
+                // Specular exponent command found
+                case "Ns":
+                    currentMaterial!.SpecularExponent = ParseFloat(line, firstSpaceIndex);
+                    break;
+                
+                // Color ambient command found
+                case "Ka":
+                    currentMaterial!.ColorAmbient = ParseVector3(line, firstSpaceIndex);
+                    break;
+                
+                // Color diffuse command found
+                case "Kd":
+                    currentMaterial!.ColorDiffuse = ParseVector3(line, firstSpaceIndex);
+                    break;
+                
+                // Color specular command found
+                case "Ks":
+                    currentMaterial!.ColorSpecular = ParseVector3(line, firstSpaceIndex);
+                    break;
+                
+                // Optical density command found
+                case "Ni":
+                    currentMaterial!.OpticalDensity = ParseFloat(line, firstSpaceIndex);
+                    break;
+                
+                // Dissolve command found
+                case "d":
+                    currentMaterial!.Dissolve = ParseFloat(line, firstSpaceIndex);
+                    break;
+                
+                // Illumination model command found
+                case "illum":
+                    // Try parsing the given line in the file
+                    // If the line is invalid, just use illumination model 2 (Color, ambient and highlight on)
+                    currentMaterial!.IlluminationModel = int.TryParse(line[firstSpaceIndex..], out var value) ? value : 2;
+                    break;
+                
+                // Diffuse texture command found
+                case "map_Kd":
+                    currentMaterial!.DiffuseTexture = line[firstSpaceIndex..];
+                    break;
+            }
+        }
     }
 
     /// <summary>
