@@ -244,7 +244,7 @@ public static class ObjImporter
                 
                 // Diffuse texture command found
                 case "map_Kd":
-                    currentMaterial!.DiffuseTexture = line[firstSpaceIndex..];
+                    currentMaterial!.DiffuseTexture = Path.Combine(Path.GetDirectoryName(fileName)!, line[(firstSpaceIndex + 1)..]);
                     break;
             }
         }

@@ -138,6 +138,7 @@ public partial class MainWindow : Window
                 logBuilder.AppendLine($"  - Optical Density: {material.Value.OpticalDensity}");
                 logBuilder.AppendLine($"  - Dissolve: {material.Value.Dissolve}");
                 logBuilder.AppendLine($"  - Illumination Model: {material.Value.IlluminationModel}");
+                logBuilder.AppendLine($"  - Diffuse texture: {material.Value.DiffuseTexture}");
             }
         }
         logBuilder.AppendLine();
