@@ -2,88 +2,83 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
         x:Class="GOATracer.MainWindow"
-        Title="GOATracer">
-    <DockPanel>
-        <!-- Top toolbar -->
-        <Menu DockPanel.Dock="Top">
-            <MenuItem Header="_File">
-                <MenuItem Header="_Import..." Click="ImportOptionClicked"/>
-                <Separator/>
-                <MenuItem Header="_Exit" Click="ExitOptionClicked"/>
-            </MenuItem>
-        </Menu>
+        Title="GOATracer"
+        Background="rgb(34,34,34)"
+        Foreground="White">
+    
+    <Border Padding="10">
         
-        <!-- main window -->
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="3*" />
-            </Grid.ColumnDefinitions>
-            <!-- sidebar with options -->
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="40" />
-                    <RowDefinition Height="*" />
-                    <RowDefinition Height="8*" />
-                    <RowDefinition Height="80" />
-                </Grid.RowDefinitions>
-
-                <!-- Import title -->
-                <Label Content="Import information" FontSize="24" VerticalAlignment="Center" />
-
-                <!-- loaded file info -->
-                <StackPanel Grid.Row="1">
-                    <Label x:Name="LoadedFilePathLabel" Content="Loaded file:" Margin="0,5,0,0" FontSize="14" />
-                    <Label x:Name="FileSizeLabel" Content="File size:" FontSize="14" />
-                    <Label x:Name="VertexCountLabel" Content="Vertex count:" FontSize="14" />
-                    <Label x:Name="MaterialCountLabel" Content="Material count:" FontSize="14" />
-                </StackPanel>
-
-                <!-- Camera dimensions -->
-                <Grid Grid.Row="2" Margin="5" ColumnDefinitions="*,*,*" RowDefinitions="40,40,40,40,40,40,40,40,40,40">
-                    <!-- Camera dimensions title -->
-                    <Label Grid.ColumnSpan="3" Content="Camera settings" FontSize="24" VerticalAlignment="Center" />
-                    <!-- X position -->
-                    <Label Grid.Row="1" Grid.Column="0" Content="Position X" VerticalAlignment="Center" />
-                    <TextBox Grid.Row="2" Grid.Column="0" x:Name="XPositionTextBox" VerticalContentAlignment="Center" Text="0" />
-                    <!-- Y position -->
-                    <Label Grid.Row="1" Grid.Column="1" Content="Position Y" VerticalAlignment="Center" />
-                    <TextBox Grid.Row="2" Grid.Column="1" x:Name="YPositionTextBox" VerticalContentAlignment="Center" Text="0" />
-                    <!-- Z position -->
-                    <Label Grid.Row="1" Grid.Column="2" Content="Position Z" VerticalAlignment="Center" />
-                    <TextBox Grid.Row="2" Grid.Column="2" x:Name="ZPositionTextBox" VerticalContentAlignment="Center" Text="0" />
-                    <!-- X rotation -->
-                    <Label Grid.Row="3" Grid.Column="0" Content="Rotation X" VerticalAlignment="Center" />
-                    <TextBox Grid.Row="4" Grid.Column="0" x:Name="XRotationTextBox" VerticalContentAlignment="Center" Text="0" />
-                    <!-- Y rotation -->
-                    <Label Grid.Row="3" Grid.Column="1" Content="Rotation Y" VerticalAlignment="Center" />
-                    <TextBox Grid.Row="4" Grid.Column="1" x:Name="YRotationTextBox" VerticalContentAlignment="Center" Text="0" />
-                    <!-- Z rotation -->
-                    <Label Grid.Row="3" Grid.Column="2" Content="Rotation X" VerticalAlignment="Center" />
-                    <TextBox Grid.Row="4" Grid.Column="2" x:Name="ZRotationTextBox" VerticalContentAlignment="Center" Text="0" />
-                    <!-- Camera dimensions title -->
-                    <Label Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" Content="Export settings" FontSize="24" VerticalAlignment="Center" />
-                    <!-- Image dimensions -->
-                    <Label Grid.Row="6" Grid.Column="0" Content="Image width" VerticalAlignment="Center" />
-                    <Label Grid.Row="6" Grid.Column="1" Content="Image height" VerticalAlignment="Center" />
-                    <TextBox x:Name="ImageWidthTextBox" Grid.Row="7" Grid.Column="0" Text="1920" VerticalContentAlignment="Center"/>
-                    <TextBox x:Name="ImageHeightTextBox" Grid.Row="7" Grid.Column="1" Text="1080" VerticalContentAlignment="Center"/>
+    <DockPanel>
+            <!-- Top toolbar -->
+            <Menu DockPanel.Dock="Top">
+                <Button Grid.Column="0" Content="Choose file&#xE8A5;" Background="DarkRed" Foreground="White" VerticalAlignment="Center" />
+                <Button Grid.Column="1" Content="Load" Background="DarkRed" Foreground="White" VerticalAlignment="Center" />
+            </Menu>
+        
+    
+            <!-- Main window -->
+            <Grid ShowGridLines="True">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="3*" />
+                </Grid.ColumnDefinitions>
+            
+                <!-- Sidebar -->
+                <Grid >
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="40" />
+                    </Grid.RowDefinitions>
+                    
+                    <Grid Grid.Row="0" Margin="5" RowDefinitions="*,*,*,*,*,*,*" ColumnDefinitions="*,*,*">
+                        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Content="Camera settings" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <Label Grid.Row="1" Grid.Column="0" Content="X-Position" FontSize="10"  VerticalAlignment="Center"/>
+                        <Label Grid.Row="1" Grid.Column="1" Content="Y-Position" FontSize="10" VerticalAlignment="Center"/>
+                        <Label Grid.Row="1" Grid.Column="2" Content="Z-Position" FontSize="10" VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Row="2" Grid.Column="0" Margin="0 0 5 0" Value="1" Increment="1"></NumericUpDown>
+                        <NumericUpDown Grid.Row="2" Grid.Column="1" Value="1" Increment="1"></NumericUpDown>
+                        <NumericUpDown Grid.Row="2" Grid.Column="2" Margin=" 5 0 0 0" Value="1" Increment="1"></NumericUpDown>
+                        <Label Grid.Row="3" Grid.Column="0" Content="X-Rotation" FontSize="10" VerticalAlignment="Center"/>
+                        <Label Grid.Row="3" Grid.Column="1" Content="Y-Rotation" FontSize="10" VerticalAlignment="Center"/>
+                        <Label Grid.Row="3" Grid.Column="2" Content="Z-Rotation" FontSize="10" VerticalAlignment="Center"/>
+                        <NumericUpDown Grid.Row="4" Grid.Column="0" Margin="0 0 5 0" Value="1" Increment="1"></NumericUpDown>
+                        <NumericUpDown Grid.Row="4" Grid.Column="1" Value="1" Increment="1"></NumericUpDown>
+                        <NumericUpDown Grid.Row="4" Grid.Column="2" Margin=" 5 0 0 0" Value="1" Increment="1"></NumericUpDown>
+                        <Button Grid.Row="5" Grid.Column="0" Content="Choose file" Background="DarkRed" Foreground="White" VerticalAlignment="Center"/>
+                    </Grid>
+                    
+                    <Grid Grid.Row="1" Margin="5" RowDefinitions="*,*,*,*,*,*" ColumnDefinitions="*,*,*">
+                        <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Content="Light settings" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+                        <Button Grid.Row="1" Grid.Column="0" Content="+" Background="DarkRed" Foreground="White" VerticalAlignment="Center"/>
+                        <ComboBox Grid.Row="1" Grid.Column="1" SelectedIndex="0" Grid.ColumnSpan="2">
+                            <ComboBoxItem>
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox VerticalAlignment="Center"></CheckBox>
+                                    <Label Content="Light1" VerticalAlignment="Center"></Label>
+                                    <Button Content="Delete" Background="DarkRed" Foreground="White" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ComboBoxItem>
+                            <ComboBoxItem>
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox VerticalAlignment="Center"></CheckBox>
+                                    <Label Content="Light2" VerticalAlignment="Center"></Label>
+                                    <Button Content="Delete" Background="DarkRed" Foreground="White" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ComboBoxItem>
+                            <ComboBoxItem>
+                                <StackPanel Orientation="Horizontal">
+                                    <CheckBox VerticalAlignment="Center"></CheckBox>
+                                    <Label Content="Light3" VerticalAlignment="Center"></Label>
+                                    <Button Content="Delete" Background="DarkRed" Foreground="White" VerticalAlignment="Center"/>
+                                </StackPanel>
+                            </ComboBoxItem>
+                        </ComboBox>
+                    </Grid>
                 </Grid>
-                
-                <!-- Render button -->
-                <Button Grid.Row="3" Grid.Column="0" Background="OrangeRed" Margin="5" HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch">
-                    <Label Content="Rendern" VerticalAlignment="Center" />
-                </Button>
             </Grid>
-
-            <!-- Render area -->
-            <Grid Grid.Column="1" RowDefinitions="3*,1*">
-                <Panel Background="DimGray" />
-                <TextBox Grid.Row="1" x:Name="LogOutputTextBlock" IsReadOnly="True"/>
-            </Grid>
-        </Grid>
-    </DockPanel>
+        </DockPanel>
+    </Border>
 </Window>
