@@ -79,6 +79,8 @@ public partial class MainWindow : Window
             
             // Output detailed information about the imported 3D model for debugging
             PrintDebugInfo(sceneDescription);
+            
+            RenderPreview.SetScene(sceneDescription, _previewCamera);
         }
     }
 
