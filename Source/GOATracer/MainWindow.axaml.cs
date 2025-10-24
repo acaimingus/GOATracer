@@ -1,7 +1,8 @@
 using System;
 using System.Globalization;
 using System.IO;
-using System.Numerics;
+// using System.Numerics;
+using OpenTK.Mathematics;
 using System.Text;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
@@ -18,7 +19,8 @@ namespace GOATracer;
 public partial class MainWindow : Window
 {
     private ImportedSceneDescription? _currentSceneDescription;
-    private readonly Camera _previewCamera = new();
+    private float aspectRatio;
+    private readonly Camera _previewCamera;
     
     /// <summary>
     /// Constructor
@@ -26,6 +28,9 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+
+        aspectRatio = (float)Bounds.Width / (float)Bounds.Height;
+        _previewCamera = new Camera(new Vector3(0, 0, 0), aspectRatio);
     }
 
     /// <summary>
@@ -217,10 +222,10 @@ public partial class MainWindow : Window
                 Convert.ToSingle(YPositionTextBox.Text, CultureInfo.InvariantCulture),
                 Convert.ToSingle(ZPositionTextBox.Text, CultureInfo.InvariantCulture));
 
-            _previewCamera.Rotation = new Vector3(
-                Convert.ToSingle(XRotationTextBox.Text, CultureInfo.InvariantCulture),
-                Convert.ToSingle(YRotationTextBox.Text, CultureInfo.InvariantCulture),
-                Convert.ToSingle(ZRotationTextBox.Text, CultureInfo.InvariantCulture));
+            _previewCamera.Pitch = Convert.ToSingle(XRotationTextBox.Text, CultureInfo.InvariantCulture);
+
+            _previewCamera.Yaw = Convert.ToSingle(YRotationTextBox.Text, CultureInfo.InvariantCulture);
+
             RenderPreview.SetCamera(_previewCamera);
         }
         catch(FormatException fe)

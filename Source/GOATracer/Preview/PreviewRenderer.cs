@@ -128,9 +128,9 @@ namespace GOATracer.Preview
             if (_camera != null)
             {
                 // Set up camera matrices
-                _camera.Aspect = (float)Bounds.Width / (float)Bounds.Height;
-                Matrix4 view = ConvertMatrix(_camera.GetViewMatrix());
-                Matrix4 projection = ConvertMatrix(_camera.GetProjectionMatrix());
+                _camera.AspectRatio = (float)Bounds.Width / (float)Bounds.Height;
+                Matrix4 view = _camera.GetViewMatrix();
+                Matrix4 projection = _camera.GetProjectionMatrix();
                 Matrix4 model = Matrix4.Identity;
 
                 _shader.SetMatrix4("model", model);
