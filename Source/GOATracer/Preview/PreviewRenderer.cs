@@ -23,6 +23,7 @@ namespace GOATracer.Preview
 
         private List<float> _vertices = new List<float>();
         private List<uint> _indices = new List<uint>();
+        private Matrix4 _modelMatrix;
 
         // These are the handles to OpenGL objects. A handle is an integer representing where the object lives on the
         // graphics card. Consider them sort of like a pointer; we can't do anything with them directly, but we can
@@ -128,14 +129,9 @@ namespace GOATracer.Preview
             if (_camera != null)
             {
                 // Set up camera matrices
-                _camera.AspectRatio = (float)Bounds.Width / (float)Bounds.Height;
-                Matrix4 view = _camera.GetViewMatrix();
-                Matrix4 projection = _camera.GetProjectionMatrix();
-                Matrix4 model = Matrix4.Identity;
-
-                _shader.SetMatrix4("model", model);
-                _shader.SetMatrix4("view", view);
-                _shader.SetMatrix4("projection", projection);
+                _shader.SetMatrix4("model", _modelMatrix);
+                _shader.SetMatrix4("view", _camera.GetViewMatrix());
+                _shader.SetMatrix4("projection", _camera.GetProjectionMatrix());
             }
 
             // Bind the VAO -> This is also in Init()
@@ -157,6 +153,11 @@ namespace GOATracer.Preview
         public void SetCamera(Camera camera)
         {
             _camera = camera;
+        }
+
+        public void SetModelMatrix(Matrix4 model)
+        {
+            _modelMatrix = model;
         }
 
         private void UploadMeshData()

@@ -223,10 +223,17 @@ public partial class MainWindow : Window
                 Convert.ToSingle(ZPositionTextBox.Text, CultureInfo.InvariantCulture));
 
             _previewCamera.Pitch = Convert.ToSingle(XRotationTextBox.Text, CultureInfo.InvariantCulture);
-
             _previewCamera.Yaw = Convert.ToSingle(YRotationTextBox.Text, CultureInfo.InvariantCulture);
 
+            float xRot = Convert.ToSingle(XRotationTextBox.Text, CultureInfo.InvariantCulture);
+            float yRot = Convert.ToSingle(YRotationTextBox.Text, CultureInfo.InvariantCulture);
+            float zRot = Convert.ToSingle(ZRotationTextBox.Text, CultureInfo.InvariantCulture);
+
+            var model = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(xRot)) * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(yRot)) 
+                * Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(zRot));
+
             RenderPreview.SetCamera(_previewCamera);
+            RenderPreview.SetModelMatrix(model);
         }
         catch(FormatException fe)
         {
