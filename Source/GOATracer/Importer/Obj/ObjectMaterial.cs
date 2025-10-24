@@ -56,6 +56,18 @@ public class ObjectMaterial
     /// </summary>
     public string? DiffuseTexture { get; }
 
+    /// <summary>
+    /// Constructor for the Material itself.
+    /// Called by the MaterialBuilder.
+    /// </summary>
+    /// <param name="specularExponent">The desired specular exponent</param>
+    /// <param name="colorAmbient">The desired ambient color</param>
+    /// <param name="colorDiffuse">The desired diffuse color</param>
+    /// <param name="colorSpecular">The desired specular color</param>
+    /// <param name="opticalDensity">The desired optical density</param>
+    /// <param name="dissolve">The desired dissolve</param>
+    /// <param name="illuminationModel">The desired illumination model</param>
+    /// <param name="diffuseTexture">The diffuse texture to use for the material</param>
     public ObjectMaterial(float? specularExponent, Vector3? colorAmbient, Vector3? colorDiffuse, Vector3? colorSpecular, float? opticalDensity, float? dissolve, int? illuminationModel, string? diffuseTexture)
     { 
         SpecularExponent = specularExponent;

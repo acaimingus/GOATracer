@@ -9,7 +9,7 @@ namespace GOATracer.Importer.Obj;
 public class ObjectDescription
 {
     /// <summary>
-    /// The human-readable name of this 3D object as defined in the .obj file.
+    /// The name of this 3D object as defined in the .obj file.
     /// This corresponds to the "o ObjectName" lines in Wavefront .obj format.
     /// Will be null if no object name was specified in the file.
     /// </summary>

@@ -53,7 +53,7 @@ public partial class MainWindow : Window
             LogOutputTextBlock.Text = "";
             
             // Extract the local file path from the selected file
-            string? filePath = files[0].Path?.LocalPath;
+            var filePath = files[0].Path.LocalPath;
 
             // Set Import information in Log
             LogOutputTextBlock.Text += $"Importing scene from {filePath}...\n";
@@ -67,7 +67,7 @@ public partial class MainWindow : Window
             // Set the import stats
             LoadedFilePathLabel.Content = $"Loaded file: { filePath }";
             FileSizeLabel.Content = $"File size: { new FileInfo(filePath).Length } bytes";
-            VertexCountLabel.Content = $"Vertex count: {sceneDescription.VertexPoints?.Count ?? 0}";
+            VertexCountLabel.Content = $"Vertex count: { sceneDescription.VertexPoints.Count }";
             MaterialCountLabel.Content = $"Material count: { sceneDescription.Materials?.Count ?? 0 }";
             
             // Output detailed information about the imported 3D model for debugging
@@ -89,15 +89,14 @@ public partial class MainWindow : Window
         logBuilder.AppendLine();
         
         // Log vertex data
-        logBuilder.AppendLine($"--- VERTICES ({importedSceneDescription.VertexPoints?.Count ?? 0}) ---");
-        if (importedSceneDescription.VertexPoints != null)
+        logBuilder.AppendLine($"--- VERTICES ({ importedSceneDescription.VertexPoints.Count }) ---");
+
+        for (var i = 0; i < importedSceneDescription.VertexPoints.Count; i++)
         {
-            for (int i = 0; i < importedSceneDescription.VertexPoints.Count; i++)
-            {
-                var vertex = importedSceneDescription.VertexPoints[i];
-                logBuilder.AppendLine($"v[{i}]: ({vertex.X}, {vertex.Y}, {vertex.Z})");
-            }
+            var vertex = importedSceneDescription.VertexPoints[i];
+            logBuilder.AppendLine($"v[{i}]: ({vertex.X}, {vertex.Y}, {vertex.Z})");
         }
+        
         logBuilder.AppendLine();
         
         // Log normal data

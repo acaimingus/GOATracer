@@ -63,9 +63,9 @@ public class ObjectMaterialBuilder
     public string? DiffuseTexture { get; set; }
 
     /// <summary>
-    /// Builder method for creating the actual read-only ObjectMaterial
+    /// Builder method for creating the actual read-only ObjectMaterial.
     /// </summary>
-    /// <returns></returns>
+    /// <returns>A built Material</returns>
     public ObjectMaterial BuildObjectMaterial()
     {
         return new ObjectMaterial(

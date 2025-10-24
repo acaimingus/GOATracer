@@ -26,13 +26,17 @@ public static class ObjImporter
         // Create a description for the scene
         var sceneDescription = new ImportedSceneDescription(Path.GetFileName(filePath));
 
+        // Initialize a variable for the currently selected material in the file
+        // May be null right now, but will be set when the usemtl command appears
         string? currentlyUsedMaterial = null;
         
         // Process each 3D object found in the file
         foreach (var fileSegment in fileSegments)
         {
+            // Create a new object description for each object section
             var objectDescription = new ObjectDescription();
 
+            // Process every line of each object
             foreach (var line in fileSegment)
             {
                 // Skip empty lines
@@ -44,8 +48,8 @@ public static class ObjImporter
                 // Get the position of the first space to determine where the first word ends
                 var firstSpaceIndex = line.IndexOf(' ');
 
-                // Extract the .obj command type (o, v, f, etc.)
-                var firstWord = line.Substring(0, firstSpaceIndex);
+                // Extract the .obj command type (o, v, f, etc.) by splitting off the first word from the line
+                var firstWord = line[..firstSpaceIndex];
 
                 // Parse different types of .obj file data based on the command
                 switch (firstWord)
@@ -57,20 +61,22 @@ public static class ObjImporter
                         ImportMaterials(mtlFullPath, sceneDescription);
                         break;
                     
+                    // Material use directive command found
                     case "usemtl":
+                        // Set the name of the material currently to use as the currently used material
                         currentlyUsedMaterial = line[(firstSpaceIndex + 1)..];
                         break;
                     
                     // Object command found
                     case "o":
-                        // Extract the name for the object
+                        // Extract the name for the object and set it in the object description
                         var nameOnly = line[(firstSpaceIndex + 1)..];
                         objectDescription.ObjectName = nameOnly;
                         break;
 
                     // Vertex command found
                     case "v":
-                        // Store this vertex in our scene's master vertex list
+                        // Store this vertex in the scene's master vertex list
                         sceneDescription.VertexPoints?.Add(ParseVector3(line, firstSpaceIndex));
                         break;
 
@@ -96,15 +102,15 @@ public static class ObjImporter
                         
                         var indices = new List<FaceVertex>();
 
-                        // Extract just the vertex indices (ignore texture/normal data after '/')
+                        // Extract the indices from the X/Y/Z format
                         foreach (var index in splitStringIndices)
                         {
                             // Split the given indices by their separator
                             var vertexIndexOnly = index.Split('/');
                             
-                            // Use TryParse for robust parsing. If parsing fails, the value will be null.
-                            // Check the length of the array for the second and third element to avoid OutOfRange exceptions.
-                            // These are currently being saved as 1-based. We will need to check if we make it 0-based here or when actually using the data.
+                            // Use TryParse for robust parsing; If parsing fails, the value will be null
+                            // Check the length of the array for the second and third element to avoid OutOfRange exceptions
+                            // These are currently being saved as 1-based; We will need to check if we make it 0-based here or when actually using the data
                             var vertexIndex = int.Parse(vertexIndexOnly[0]);
                             int? textureIndex = vertexIndexOnly.Length > 1 && int.TryParse(vertexIndexOnly[1], out var v1) ? v1 : null;
                             int? normalIndex = vertexIndexOnly.Length > 2 && int.TryParse(vertexIndexOnly[2], out var v2) ? v2 : null;
@@ -131,7 +137,6 @@ public static class ObjImporter
 
     /// <summary>
     /// Helper method for handling the parsing of 3 coordinate Vertex points.
-    /// Used for elements like v and vn.
     /// </summary>
     /// <param name="line">The line of the file to be taken apart</param>
     /// <param name="firstSpaceIndex">The index of where the tag of the line ends</param>
@@ -147,9 +152,9 @@ public static class ObjImporter
         // Convert coordinate strings to numbers
         var coordinates = new float[3];
 
-        // Use TryParse to have a more robust parsing of the coordinates. If a coordinate is invalid, then it will be 0.0.
-        // Use NumberStyles for 
-        // Use InvariantCulture to handle decimal points correctly regardless of system locale.
+        // Use TryParse to have a more robust parsing of the coordinates. If a coordinate is invalid, then it will be 0.0
+        // Use NumberStyles to correctly parse floating-point numbers
+        // Use InvariantCulture to handle decimal points correctly regardless of system locale
         for (var i = 0; i < Math.Min(splitStringCoordinates.Length, 3); i++)
         {
             float.TryParse(
@@ -160,22 +165,36 @@ public static class ObjImporter
             );
         }
 
+        // Return the Vector
         return new Vector3(coordinates);
     }
 
+    /// <summary>
+    /// Helper method for cleaner parsing of float values from the .obj file.
+    /// </summary>
+    /// <param name="line">The line of the file to be taken apart</param>
+    /// <param name="firstSpaceIndex">The index of where the tag of the line ends</param>
+    /// <returns>Either the float specified in the file or if it was invalid then 1.0f</returns>
     private static float ParseFloat(string line, int firstSpaceIndex)
     {
         return float.TryParse(line[firstSpaceIndex..], NumberStyles.Float, CultureInfo.InvariantCulture, out var value) ? value : 1.0f;
     }
 
+    /// <summary>
+    /// Method for importing materials from a .mtl file.
+    /// </summary>
+    /// <param name="fileName">File to import materials from</param>
+    /// <param name="sceneDescription">SceneDescription to import the materials into</param>
     private static void ImportMaterials(string fileName, ImportedSceneDescription sceneDescription)
     {
+        // Open the file for reading
+        // Source: https://learn.microsoft.com/de-de/dotnet/api/system.io.streamreader?view=net-8.0
         using var streamReader = new StreamReader(fileName);
 
+        // Create a material builder variable to initialize when the first material gets defined
         ObjectMaterialBuilder? currentMaterial = null;
-        string? line;
-        
-        while ((line = streamReader.ReadLine()) != null)
+
+        while (streamReader.ReadLine() is { } line)
         {
             // Skip empty lines
             if (string.IsNullOrEmpty(line))
@@ -183,10 +202,11 @@ public static class ObjImporter
                 continue;
             }
             
+            // Find the first space in the line to split the command from the rest of the arguments
             var firstSpaceIndex = line.IndexOf(' ');
             
             // Check what type of .obj command this line contains
-            var firstWord = line.Substring(0, firstSpaceIndex);
+            var firstWord = line[..firstSpaceIndex];
             
             switch (firstWord)
             {
@@ -207,31 +227,37 @@ public static class ObjImporter
                 
                 // Specular exponent command found
                 case "Ns":
+                    // Set the according field in the material class
                     currentMaterial!.SpecularExponent = ParseFloat(line, firstSpaceIndex);
                     break;
                 
                 // Color ambient command found
                 case "Ka":
+                    // Set the according field in the material class
                     currentMaterial!.ColorAmbient = ParseVector3(line, firstSpaceIndex);
                     break;
                 
                 // Color diffuse command found
                 case "Kd":
+                    // Set the according field in the material class
                     currentMaterial!.ColorDiffuse = ParseVector3(line, firstSpaceIndex);
                     break;
                 
                 // Color specular command found
                 case "Ks":
+                    // Set the according field in the material class
                     currentMaterial!.ColorSpecular = ParseVector3(line, firstSpaceIndex);
                     break;
                 
                 // Optical density command found
                 case "Ni":
+                    // Set the according field in the material class
                     currentMaterial!.OpticalDensity = ParseFloat(line, firstSpaceIndex);
                     break;
                 
                 // Dissolve command found
                 case "d":
+                    // Set the according field in the material class
                     currentMaterial!.Dissolve = ParseFloat(line, firstSpaceIndex);
                     break;
                 
@@ -244,17 +270,18 @@ public static class ObjImporter
                 
                 // Diffuse texture command found
                 case "map_Kd":
+                    // Set the according field in the material class
                     currentMaterial!.DiffuseTexture = Path.Combine(Path.GetDirectoryName(fileName)!, line[(firstSpaceIndex + 1)..]);
                     break;
             }
         }
         
         // Add the last material too
-        sceneDescription.Materials.Add(currentMaterial.MaterialName, currentMaterial.BuildObjectMaterial());
+        sceneDescription.Materials.Add(currentMaterial!.MaterialName, currentMaterial.BuildObjectMaterial());
     }
 
     /// <summary>
-    /// Splits a .obj file into separate sections, one for each 3D object defined in the file
+    /// Splits a .obj file into separate sections, one for each 3D object defined in the file.
     /// </summary>
     /// <param name="filePath">Path to the .obj file to process</param>
     /// <returns>List of line groups, where each group contains all data for one 3D object</returns>
@@ -272,8 +299,7 @@ public static class ObjImporter
         var currentFileSection = new List<string>();
 
         // Process the file line by line
-        string? line;
-        while ((line = streamReader.ReadLine()) != null)
+        while (streamReader.ReadLine() is { } line)
         {
             // Skip empty lines
             if (string.IsNullOrEmpty(line))
@@ -282,7 +308,7 @@ public static class ObjImporter
             }
 
             // Check what type of .obj command this line contains
-            var firstWord = line.Substring(0, line.IndexOf(' '));
+            var firstWord = line[..line.IndexOf(' ')];
 
             // "o" command starts a new 3D object definition
             if (firstWord == "o")
