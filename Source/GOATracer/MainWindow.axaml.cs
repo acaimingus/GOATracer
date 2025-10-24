@@ -1,10 +1,14 @@
+using System;
+using System.Globalization;
 using System.IO;
+using System.Numerics;
 using System.Text;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using GOATracer.Importer.Obj;
+using GOATracer.Preview;
 
 namespace GOATracer;
 
@@ -13,6 +17,9 @@ namespace GOATracer;
 /// </summary>
 public partial class MainWindow : Window
 {
+    private ImportedSceneDescription? _currentSceneDescription;
+    private readonly Camera _previewCamera = new();
+    
     /// <summary>
     /// Constructor
     /// </summary>
@@ -197,5 +204,25 @@ public partial class MainWindow : Window
     {
         // Close the app
         this.Close();
+    }
+    
+    private void RenderButtonClicked(object? sender, RoutedEventArgs e)
+    {
+        try
+        {
+            _previewCamera.Position = new Vector3(
+                Convert.ToSingle(XPositionTextBox.Text, CultureInfo.InvariantCulture),
+                Convert.ToSingle(YPositionTextBox.Text, CultureInfo.InvariantCulture),
+                Convert.ToSingle(ZPositionTextBox.Text, CultureInfo.InvariantCulture));
+
+            _previewCamera.Rotation = new Vector3(
+                Convert.ToSingle(XRotationTextBox.Text, CultureInfo.InvariantCulture),
+                Convert.ToSingle(YRotationTextBox.Text, CultureInfo.InvariantCulture),
+                Convert.ToSingle(ZRotationTextBox.Text, CultureInfo.InvariantCulture));
+        }
+        catch(FormatException fe)
+        {
+            Console.WriteLine("Invalid number format in camera settings.");
+        }
     }
 }

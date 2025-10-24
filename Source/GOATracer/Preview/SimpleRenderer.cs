@@ -3,14 +3,14 @@ using System.Numerics;
 using Avalonia;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using GOATracer.Descriptions;
+using GOATracer.Importer.Obj;
 using Vector = Avalonia.Vector;
 
 namespace GOATracer.Preview;
 
 public static class SimpleRenderer
 {
-    public static WriteableBitmap RenderWireframe(SceneDescription scene, Camera camera, int width, int height)
+    public static WriteableBitmap RenderWireframe(ImportedSceneDescription scene, Camera camera, int width, int height)
     {
         // BGRA32 framebuffer (4 bytes for each pixel)
         var frameBuffer = new byte[width * height * 4];
@@ -30,7 +30,7 @@ public static class SimpleRenderer
 
             for (var i = 0; i < face.Indices.Count; i++)
             {
-                var v = scene.VertexPoints![face.Indices[i] - 1].GetCoordinates();
+                var v = scene.VertexPoints![face.Indices[i].VertexIndex - 1];
                 var clip = Vector4.Transform(new Vector4(v, 1f), viewProjection);
 
                 // Perspective division

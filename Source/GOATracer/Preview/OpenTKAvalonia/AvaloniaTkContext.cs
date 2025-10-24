@@ -1,8 +1,8 @@
-﻿using Avalonia.OpenGL;
+﻿using System;
+using Avalonia.OpenGL;
 using OpenTK;
-using System;
 
-namespace OpenTKAvalonia;
+namespace GOATracer.Preview.OpenTKAvalonia;
 
 /// <summary>
 /// Wrapper to expose GetProcAddress from Avalonia in a manner that OpenTK can consume. 

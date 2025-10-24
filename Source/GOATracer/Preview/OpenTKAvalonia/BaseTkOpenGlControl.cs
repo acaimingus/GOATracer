@@ -6,7 +6,7 @@ using Avalonia.Rendering;
 using Avalonia.Threading;
 using OpenTK.Graphics.OpenGL4;
 
-namespace OpenTKAvalonia;
+namespace GOATracer.Preview.OpenTKAvalonia;
 
 public abstract class BaseTkOpenGlControl : OpenGlControlBase, ICustomHitTest
 {

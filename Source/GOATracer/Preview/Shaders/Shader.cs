@@ -1,10 +1,10 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
+using System.IO;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
-namespace GOATracer.Shaders
+namespace GOATracer.Preview.Shaders
 {
     internal class Shader
     {

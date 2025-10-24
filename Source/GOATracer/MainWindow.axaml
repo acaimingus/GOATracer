@@ -2,6 +2,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:preview="clr-namespace:GOATracer.Preview"
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="GOATracer.MainWindow"
         Title="GOATracer">
@@ -74,14 +75,14 @@
                 
                 <!-- Render button -->
                 <Button Grid.Row="3" Grid.Column="0" Background="OrangeRed" Margin="5" HorizontalAlignment="Stretch"
-                        VerticalAlignment="Stretch">
+                        VerticalAlignment="Stretch" Click="RenderButtonClicked" >
                     <Label Content="Rendern" VerticalAlignment="Center" />
                 </Button>
             </Grid>
 
             <!-- Render area -->
             <Grid Grid.Column="1" RowDefinitions="3*,1*">
-                <Panel Background="DimGray" />
+                <preview:PreviewRenderer x:Name="RenderPreview" Width="600" Height="400" />
                 <TextBox Grid.Row="1" x:Name="LogOutputTextBlock" IsReadOnly="True"/>
             </Grid>
         </Grid>

@@ -1,14 +1,10 @@
-﻿using Avalonia;
-using Avalonia.Controls;
-using Avalonia.OpenGL;
-using Avalonia.Platform;
-using GOATracer.Descriptions;
-using GOATracer.Shaders;
+﻿using GOATracer.Importer.Obj;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
-using OpenTKAvalonia;
 using System;
 using System.Collections.Generic;
+using GOATracer.Preview.OpenTKAvalonia;
+using GOATracer.Preview.Shaders;
 using SystemNumerics = System.Numerics;
 
 
@@ -21,13 +17,12 @@ namespace GOATracer.Preview
     {
         // private UiOpenGlShader? _shader;
 
-        private SceneDescription? _scene;
+        private ImportedSceneDescription? _scene;
         private Camera? _camera;
-        private List<VertexPoint>? _vertices;
         private bool _sceneLoaded = false;
         private int _indexCount = 0;
 
-        public void SetScene(SceneDescription scene, Camera camera)
+        public void SetScene(ImportedSceneDescription scene, Camera camera)
         {
             _scene = scene;
             _camera = camera;
@@ -230,10 +225,9 @@ namespace GOATracer.Preview
             // Flatten the vertex data from Vector3 to a simple float array
             foreach (var vertexPoint in _scene.VertexPoints)
             {
-                var coords = vertexPoint.GetCoordinates();
-                vertices.Add(coords.X);
-                vertices.Add(coords.Y);
-                vertices.Add(coords.Z);
+                vertices.Add(vertexPoint.X);
+                vertices.Add(vertexPoint.Y);
+                vertices.Add(vertexPoint.Z);
             }
 
             // Flatten the face data into an element index list
@@ -243,9 +237,9 @@ namespace GOATracer.Preview
                 foreach (var face in obj.FacePoints)
                 {
                     // Assuming triangles for simplicity. If you have quads, you'd need to triangulate.
-                    indices.Add((uint)face.Indices[0] - 1);
-                    indices.Add((uint)face.Indices[1] - 1);
-                    indices.Add((uint)face.Indices[2] - 1);
+                    indices.Add((uint)face.Indices[0].VertexIndex - 1);
+                    indices.Add((uint)face.Indices[1].VertexIndex - 1);
+                    indices.Add((uint)face.Indices[2].VertexIndex - 1);
                 }
             }
 

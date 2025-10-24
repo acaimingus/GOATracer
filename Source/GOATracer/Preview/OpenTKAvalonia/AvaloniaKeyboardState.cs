@@ -1,7 +1,7 @@
 ﻿using System.Collections;
 using Avalonia.Input;
 
-namespace OpenTKAvalonia;
+namespace GOATracer.Preview.OpenTKAvalonia;
 
 public class AvaloniaKeyboardState
 {
