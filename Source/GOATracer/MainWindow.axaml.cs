@@ -221,6 +221,7 @@ public partial class MainWindow : Window
                 Convert.ToSingle(XRotationTextBox.Text, CultureInfo.InvariantCulture),
                 Convert.ToSingle(YRotationTextBox.Text, CultureInfo.InvariantCulture),
                 Convert.ToSingle(ZRotationTextBox.Text, CultureInfo.InvariantCulture));
+            RenderPreview.SetCamera(_previewCamera);
         }
         catch(FormatException fe)
         {
