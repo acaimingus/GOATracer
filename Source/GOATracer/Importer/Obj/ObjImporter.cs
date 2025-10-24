@@ -58,7 +58,14 @@ public static class ObjImporter
                     case "mtllib":
                         var fileNameOnly = line[(firstSpaceIndex + 1)..];
                         var mtlFullPath = Path.Combine(Path.GetDirectoryName(filePath)!, fileNameOnly);
-                        ImportMaterials(mtlFullPath, sceneDescription);
+                        try
+                        {
+                            ImportMaterials(mtlFullPath, sceneDescription);
+                        }
+                        catch (FileNotFoundException)
+                        {
+                            // The .mtl file is missing, there will be no materials
+                        }
                         break;
                     
                     // Material use directive command found
