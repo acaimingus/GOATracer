@@ -12,7 +12,7 @@ public class ObjectMaterialBuilder
     /// <summary>
     /// The name of the material.
     /// </summary>
-    public required string MaterialName { get; set; }
+    public required string MaterialName { get; init; }
 
     /// <summary>
     /// Specular exponent value of the material.
