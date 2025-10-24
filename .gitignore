@@ -12,6 +12,7 @@ obj/
 
 # Visual Studio Code
 .vscode/
+.vs/
 
 # Rider
 .idea/
