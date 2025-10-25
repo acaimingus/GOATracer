@@ -47,7 +47,7 @@ namespace GOATracer.Raytracer
             _rotation = rotation;
         }
 
-        // --- MANUELLE RECHTSHÄNDER-MATRIZEN (GEMÄSS ANFORDERUNG) ---
+        // --- MANUAL RIGHT-HANDED MATRICES (AS PER REQUIREMENT) ---
 
         /// <summary>
         /// Creates a Right-Handed LookAt matrix (like OpenGL's gluLookAt).
@@ -81,7 +81,7 @@ namespace GOATracer.Raytracer
             );
         }
 
-        // --- MATRIX-GETTER (VERWENDEN JETZT DIE CUSTOM-METHODEN) ---
+        // --- MATRIX GETTERS (NOW USING CUSTOM METHODS) ---
 
         private Matrix4x4 GetViewMatrix()
         {
@@ -106,7 +106,7 @@ namespace GOATracer.Raytracer
             return CreateCustomPerspectiveFieldOfViewRightHanded(fovRad, aspectRatio, nearPlane, farPlane);
         }
 
-        // --- GETRAYDIRECTION (BLEIBT GLEICH) ---
+        // --- GETRAYDIRECTION (REMAINS THE SAME) ---
 
         public Vector3 GetRayDirection(int x, int y, int imageWidth, int imageHeight)
         {
