@@ -16,6 +16,11 @@ class Program
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
             .UsePlatformDetect()
+            .With(new Win32PlatformOptions
+            {
+                // Force WGL (OpenGL via Windows) instead of ANGLE
+                RenderingMode = [Win32RenderingMode.Wgl, Win32RenderingMode.Software],
+            })
             .WithInterFont()
             .LogToTrace();
 }
