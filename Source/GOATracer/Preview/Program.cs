@@ -20,10 +20,8 @@ namespace GOATracer.Preview
                 Flags = ContextFlags.ForwardCompatible,
             };
 
-            using (var window = new Window(GameWindowSettings.Default, nativeWindowSettings, sceneDescription))
-            {
-                window.Run();
-            }
+            using var window = new Window(GameWindowSettings.Default, nativeWindowSettings, sceneDescription);
+            window.Run();
         }
     }
 }
