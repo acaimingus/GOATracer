@@ -208,6 +208,7 @@ public partial class MainWindow : Window
     private void RenderButtonClicked(object? sender, RoutedEventArgs e)
     {
         var previewRenderer = new PreviewRenderer(_sceneDescription);
+        RenderArea.Children.Clear(); // kill previous renderer if any
         RenderArea.Children.Add(previewRenderer);
     }
 }

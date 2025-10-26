@@ -1,10 +1,13 @@
-using System;
-using System.Collections.Generic;
+using Avalonia;
+using Avalonia.Input;
 using Avalonia.OpenGL;
 using Avalonia.OpenGL.Controls;
 using GOATracer.Importer.Obj;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
+using OpenTK.Windowing.GraphicsLibraryFramework;
+using System;
+using System.Collections.Generic;
 
 namespace GOATracer.Preview;
 
@@ -23,6 +26,8 @@ public class PreviewRenderer : OpenGlControlBase
     private Vector2 _lastPos;
     private bool _glLoaded;
 
+    private HashSet<Key> _keys = new HashSet<Key>();
+
     // BindingsContext, damit OpenTK seine GL-Funktionen über Avalonia lädt
     private sealed class AvaloniaBindingsContext : OpenTK.IBindingsContext
     {
@@ -36,6 +41,8 @@ public class PreviewRenderer : OpenGlControlBase
     /// </summary>
     public PreviewRenderer(ImportedSceneDescription sceneDescription)
     {
+        this.Focusable = true;
+
         var vertexDataList = new List<float>();
 
         // Default normal, if no other is available
@@ -144,6 +151,8 @@ public class PreviewRenderer : OpenGlControlBase
         int h = Math.Max(1, (int)Bounds.Height);
         GL.Viewport(0, 0, w, h);
 
+        HandleKeyboard();
+
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         GL.BindVertexArray(_vaoModel);
@@ -196,5 +205,45 @@ public class PreviewRenderer : OpenGlControlBase
         GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
         
         RequestNextFrameRendering();
+    }
+
+    private void HandleKeyboard()
+    {
+        if (_camera is null) return;
+
+        const float cameraSpeed = 0.5f;
+        const float sensitivity = 0.2f;
+
+        if (_keys.Contains(Key.W)) _camera.Position += _camera.Front * cameraSpeed;
+        if (_keys.Contains(Key.S)) _camera.Position -= _camera.Front * cameraSpeed;
+        if (_keys.Contains(Key.A)) _camera.Position -= _camera.Right * cameraSpeed;
+        if (_keys.Contains(Key.D)) _camera.Position += _camera.Right * cameraSpeed;
+        if (_keys.Contains(Key.Space)) _camera.Position += _camera.Up * cameraSpeed;
+        if (_keys.Contains(Key.LeftShift) || _keys.Contains(Key.RightShift)) _camera.Position -= _camera.Up * cameraSpeed;
+    }
+
+    // Focus on the previewer when it is visible
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        Focus();
+    }
+
+    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    {
+        base.OnPointerPressed(e);
+        Focus();
+    }
+
+    protected override void OnKeyDown(KeyEventArgs e)
+    {
+        base.OnKeyDown(e);
+        _keys.Add(e.Key);
+    }
+
+    protected override void OnKeyUp(KeyEventArgs e)
+    {
+        base.OnKeyUp(e);
+        _keys.Remove(e.Key);
     }
 }
