@@ -1,16 +1,17 @@
 ﻿using System;
-using System.IO;
-using System.Text;
 using System.Collections.Generic;
+using System.IO;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 
-namespace Preview
+namespace GOATracer.Preview
 {
     // A simple class meant to help create shaders.
+    //
+    // Source: https://github.com/opentk/LearnOpenTK
     public class Shader
     {
-        public readonly int Handle;
+        private readonly int _handle;
 
         private readonly Dictionary<string, int> _uniformLocations;
 
@@ -46,19 +47,19 @@ namespace Preview
 
             // These two shaders must then be merged into a shader program, which can then be used by OpenGL.
             // To do this, create a program...
-            Handle = GL.CreateProgram();
+            _handle = GL.CreateProgram();
 
             // Attach both shaders...
-            GL.AttachShader(Handle, vertexShader);
-            GL.AttachShader(Handle, fragmentShader);
+            GL.AttachShader(_handle, vertexShader);
+            GL.AttachShader(_handle, fragmentShader);
 
             // And then link them together.
-            LinkProgram(Handle);
+            LinkProgram(_handle);
 
             // When the shader program is linked, it no longer needs the individual shaders attached to it; the compiled code is copied into the shader program.
             // Detach them, and then delete them.
-            GL.DetachShader(Handle, vertexShader);
-            GL.DetachShader(Handle, fragmentShader);
+            GL.DetachShader(_handle, vertexShader);
+            GL.DetachShader(_handle, fragmentShader);
             GL.DeleteShader(fragmentShader);
             GL.DeleteShader(vertexShader);
 
@@ -67,7 +68,7 @@ namespace Preview
             // later.
 
             // First, we have to get the number of active uniforms in the shader.
-            GL.GetProgram(Handle, GetProgramParameterName.ActiveUniforms, out var numberOfUniforms);
+            GL.GetProgram(_handle, GetProgramParameterName.ActiveUniforms, out var numberOfUniforms);
 
             // Next, allocate the dictionary to hold the locations.
             _uniformLocations = new Dictionary<string, int>();
@@ -76,10 +77,10 @@ namespace Preview
             for (var i = 0; i < numberOfUniforms; i++)
             {
                 // get the name of this uniform,
-                var key = GL.GetActiveUniform(Handle, i, out _, out _);
+                var key = GL.GetActiveUniform(_handle, i, out _, out _);
 
                 // get the location,
-                var location = GL.GetUniformLocation(Handle, key);
+                var location = GL.GetUniformLocation(_handle, key);
 
                 // and then add it to the dictionary.
                 _uniformLocations.Add(key, location);
@@ -118,14 +119,14 @@ namespace Preview
         // A wrapper function that enables the shader program.
         public void Use()
         {
-            GL.UseProgram(Handle);
+            GL.UseProgram(_handle);
         }
 
         // The shader sources provided with this project use hardcoded layout(location)-s. If you want to do it dynamically,
         // you can omit the layout(location=X) lines in the vertex shader, and use this in VertexAttribPointer instead of the hardcoded values.
         public int GetAttribLocation(string attribName)
         {
-            return GL.GetAttribLocation(Handle, attribName);
+            return GL.GetAttribLocation(_handle, attribName);
         }
 
         // Uniform setters
@@ -144,7 +145,7 @@ namespace Preview
         /// <param name="data">The data to set</param>
         public void SetInt(string name, int data)
         {
-            GL.UseProgram(Handle);
+            GL.UseProgram(_handle);
             GL.Uniform1(_uniformLocations[name], data);
         }
 
@@ -155,7 +156,7 @@ namespace Preview
         /// <param name="data">The data to set</param>
         public void SetFloat(string name, float data)
         {
-            GL.UseProgram(Handle);
+            GL.UseProgram(_handle);
             GL.Uniform1(_uniformLocations[name], data);
         }
 
@@ -171,7 +172,7 @@ namespace Preview
         /// </remarks>
         public void SetMatrix4(string name, Matrix4 data)
         {
-            GL.UseProgram(Handle);
+            GL.UseProgram(_handle);
             GL.UniformMatrix4(_uniformLocations[name], true, ref data);
         }
 
@@ -182,7 +183,7 @@ namespace Preview
         /// <param name="data">The data to set</param>
         public void SetVector3(string name, Vector3 data)
         {
-            GL.UseProgram(Handle);
+            GL.UseProgram(_handle);
             GL.Uniform3(_uniformLocations[name], data);
         }
     }

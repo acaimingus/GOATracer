@@ -7,7 +7,6 @@ using OpenTK.Mathematics;
 using OpenTK.Windowing.Common;
 using OpenTK.Windowing.Desktop;
 using OpenTK.Windowing.GraphicsLibraryFramework;
-using Preview;
 
 namespace GOATracer.Preview
 {
@@ -15,11 +14,13 @@ namespace GOATracer.Preview
     // control of the interaction between the light and the material.
     // At the end of the web version of the tutorial we also had a bit of fun creating a disco light that changes
     // color of the cube over time.
+    //
+    // Source: https://github.com/opentk/LearnOpenTK
     public class Window : GameWindow
     {
         private readonly float[] _vertices;
 
-        private readonly Vector3 _lightPos = new Vector3(1.2f, 1.0f, 2.0f);
+        private readonly Vector3 _lightPos = new(1.2f, 1.0f, 2.0f);
 
         private int _vertexBufferObject;
 
@@ -37,48 +38,42 @@ namespace GOATracer.Preview
 
         private Vector2 _lastPos;
         
-        private int _vertexCountToDraw;
+        private readonly int _vertexCountToDraw;
 
         public Window(GameWindowSettings gameWindowSettings, NativeWindowSettings nativeWindowSettings,
             ImportedSceneDescription sceneDescription)
             : base(gameWindowSettings, nativeWindowSettings)
         {
-// _vertices = sceneDescription.VertexPoints.SelectMany(v => new float[] { v.X, v.Y, v.Z }).ToArray(); // <-- ALTEN CODE ENTFERNEN
-
-            // NEUER CODE: Interleaved Daten erstellen
             var vertexDataList = new List<float>();
-            // Wir brauchen eine temporäre Liste für Indices, wenn wir DrawElements verwenden wollen (später)
-            // var indicesList = new List<uint>();
-            // uint currentIndex = 0;
+            
+            // Default normal, if no other is available
+            var defaultNormal = Vector3.UnitY;
 
-            // Standard-Normale, falls keine vorhanden ist (sollte nicht passieren bei deiner Datei)
-            Vector3 defaultNormal = Vector3.UnitY;
-
-            foreach (var objDesc in sceneDescription.ObjectDescriptions)
+            foreach (var objDesc in sceneDescription.ObjectDescriptions!)
             {
                 foreach (var face in objDesc.FacePoints)
                 {
-                    // Wichtig: OBJ Faces können mehr als 3 Vertices haben. Wir müssen triangulieren.
-                    // Einfache Fächer-Triangulierung (wie in SimpleObjRenderer)
-                    FaceVertex rootVertex = face.Indices[0];
+                    // OBJ-faces can have more than 3 points => triangulation needed
+                    // Simple triangulation
+                    var rootVertex = face.Indices[0];
 
-                    for (int i = 1; i < face.Indices.Count - 1; i++)
+                    for (var i = 1; i < face.Indices.Count - 1; i++)
                     {
-                        FaceVertex v1 = face.Indices[i];
-                        FaceVertex v2 = face.Indices[i + 1];
+                        var v1 = face.Indices[i];
+                        var v2 = face.Indices[i + 1];
 
-                        // Füge die Daten für die 3 Vertices des Dreiecks hinzu
+                        // Add the data for the vertices of the triangle
                         foreach (var fv in new[] { rootVertex, v1, v2 })
                         {
-                            // Position holen (Index ist 1-basiert!)
-                            Vector3 pos = (Vector3)sceneDescription.VertexPoints[fv.VertexIndex - 1];
+                            // Get the position (Index is 1-based)
+                            var pos = (Vector3)sceneDescription.VertexPoints[fv.VertexIndex - 1];
                             vertexDataList.Add(pos.X);
                             vertexDataList.Add(pos.Y);
                             vertexDataList.Add(pos.Z);
 
-                            // Normale holen (Index ist 1-basiert!)
-                            // Füge eine Überprüfung hinzu, falls NormalPoints null ist oder der Index fehlt
-                            Vector3 norm = defaultNormal;
+                            // Get normals (Index ist 1-based)
+                            // Add a check in case NormalPoints is null or the index is missing
+                            var norm = defaultNormal;
                             if (sceneDescription.NormalPoints != null && fv.NormalIndex.HasValue &&
                                 fv.NormalIndex.Value <= sceneDescription.NormalPoints.Count)
                             {
@@ -88,19 +83,15 @@ namespace GOATracer.Preview
                             vertexDataList.Add(norm.X);
                             vertexDataList.Add(norm.Y);
                             vertexDataList.Add(norm.Z);
-
-                            // Für DrawElements (später): indicesList.Add(currentIndex++); 
                         }
                     }
                 }
             }
 
             _vertices = vertexDataList.ToArray();
-            // Berechne die Anzahl der Vertices, die gezeichnet werden sollen
-            // Da jeder Vertex jetzt 6 Floats hat (Pos+Norm), teilen wir die Gesamtzahl der Floats durch 6
+            // Calculate the amount of vertices to draw
+            // Because every vertex has 6 floats (position and normal), the _vertexCountToDraw gets divided by 6
             _vertexCountToDraw = _vertices.Length / 6;
-
-            // _indices = indicesList.ToArray(); // Für DrawElements (später)
         }
 
         protected override void OnLoad()
@@ -172,14 +163,14 @@ namespace GOATracer.Preview
 
             // This is where we change the lights color over time using the sin function
             Vector3 lightColor;
-            float time = DateTime.Now.Second + DateTime.Now.Millisecond / 1000f;
+            var time = DateTime.Now.Second + DateTime.Now.Millisecond / 1000f;
             lightColor.X = (MathF.Sin(time * 2.0f) + 1) / 2f;
             lightColor.Y = (MathF.Sin(time * 0.7f) + 1) / 2f;
             lightColor.Z = (MathF.Sin(time * 1.3f) + 1) / 2f;
 
             // The ambient light is less intensive than the diffuse light in order to make it less dominant
-            Vector3 ambientColor = lightColor * new Vector3(0.2f);
-            Vector3 diffuseColor = lightColor * new Vector3(0.5f);
+            var ambientColor = lightColor * new Vector3(0.2f);
+            var diffuseColor = lightColor * new Vector3(0.5f);
 
             _lightingShader.SetVector3("light.position", _lightPos);
             _lightingShader.SetVector3("light.ambient", ambientColor);
@@ -192,7 +183,7 @@ namespace GOATracer.Preview
 
             _lampShader.Use();
 
-            Matrix4 lampMatrix = Matrix4.Identity;
+            var lampMatrix = Matrix4.Identity;
             lampMatrix *= Matrix4.CreateScale(0.2f);
             lampMatrix *= Matrix4.CreateTranslation(_lightPos);
 
@@ -214,9 +205,7 @@ namespace GOATracer.Preview
                 return;
             }
 
-            var input = KeyboardState;
-
-            if (input.IsKeyDown(Keys.Escape))
+            if (KeyboardState.IsKeyDown(Keys.Escape))
             {
                 Close();
             }
@@ -224,48 +213,52 @@ namespace GOATracer.Preview
             const float cameraSpeed = 1.5f;
             const float sensitivity = 0.2f;
 
-            if (input.IsKeyDown(Keys.W))
+            if (KeyboardState.IsKeyDown(Keys.W))
             {
-                _camera.Position += _camera.Front * cameraSpeed * (float)e.Time; // Forward
+                // Forward
+                _camera.Position += _camera.Front * cameraSpeed * (float)e.Time;
             }
 
-            if (input.IsKeyDown(Keys.S))
+            if (KeyboardState.IsKeyDown(Keys.S))
             {
-                _camera.Position -= _camera.Front * cameraSpeed * (float)e.Time; // Backwards
+                // Backwards
+                _camera.Position -= _camera.Front * cameraSpeed * (float)e.Time;
             }
 
-            if (input.IsKeyDown(Keys.A))
+            if (KeyboardState.IsKeyDown(Keys.A))
             {
-                _camera.Position -= _camera.Right * cameraSpeed * (float)e.Time; // Left
+                // Left
+                _camera.Position -= _camera.Right * cameraSpeed * (float)e.Time;
             }
 
-            if (input.IsKeyDown(Keys.D))
+            if (KeyboardState.IsKeyDown(Keys.D))
             {
-                _camera.Position += _camera.Right * cameraSpeed * (float)e.Time; // Right
+                // Right
+                _camera.Position += _camera.Right * cameraSpeed * (float)e.Time;
             }
 
-            if (input.IsKeyDown(Keys.Space))
+            if (KeyboardState.IsKeyDown(Keys.Space))
             {
-                _camera.Position += _camera.Up * cameraSpeed * (float)e.Time; // Up
+                // Up
+                _camera.Position += _camera.Up * cameraSpeed * (float)e.Time;
             }
 
-            if (input.IsKeyDown(Keys.LeftShift))
+            if (KeyboardState.IsKeyDown(Keys.LeftShift))
             {
-                _camera.Position -= _camera.Up * cameraSpeed * (float)e.Time; // Down
+                // Down
+                _camera.Position -= _camera.Up * cameraSpeed * (float)e.Time;
             }
-
-            var mouse = MouseState;
 
             if (_firstMove)
             {
-                _lastPos = new Vector2(mouse.X, mouse.Y);
+                _lastPos = new Vector2(MouseState.X, MouseState.Y);
                 _firstMove = false;
             }
             else
             {
-                var deltaX = mouse.X - _lastPos.X;
-                var deltaY = mouse.Y - _lastPos.Y;
-                _lastPos = new Vector2(mouse.X, mouse.Y);
+                var deltaX = MouseState.X - _lastPos.X;
+                var deltaY = MouseState.Y - _lastPos.Y;
+                _lastPos = new Vector2(MouseState.X, MouseState.Y);
 
                 _camera.Yaw += deltaX * sensitivity;
                 _camera.Pitch -= deltaY * sensitivity;

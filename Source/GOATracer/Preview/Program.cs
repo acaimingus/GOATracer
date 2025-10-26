@@ -5,6 +5,9 @@ using OpenTK.Windowing.Desktop;
 
 namespace GOATracer.Preview
 {
+    // Launcher for the preview window.
+    //
+    // Source: https://github.com/opentk/LearnOpenTK
     public static class Program
     {
         public static void Launch(ImportedSceneDescription sceneDescription)

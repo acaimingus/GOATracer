@@ -6,14 +6,16 @@ using PixelFormat = OpenTK.Graphics.OpenGL4.PixelFormat;
 namespace GOATracer.Preview
 {
     // A helper class, much like Shader, meant to simplify loading textures.
+    //
+    // Source: https://github.com/opentk/LearnOpenTK
     public class Texture
     {
-        public readonly int Handle;
+        private readonly int _handle;
 
         public static Texture LoadFromFile(string path)
         {
             // Generate handle
-            int handle = GL.GenTexture();
+            var handle = GL.GenTexture();
 
             // Bind the handle
             GL.ActiveTexture(TextureUnit.Texture0);
@@ -28,7 +30,7 @@ namespace GOATracer.Preview
             // Here we open a stream to the file and pass it to StbImageSharp to load.
             using (Stream stream = File.OpenRead(path))
             {
-                ImageResult image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
+                var image = ImageResult.FromStream(stream, ColorComponents.RedGreenBlueAlpha);
 
                 // Now that our pixels are prepared, it's time to generate a texture. We do this with GL.TexImage2D.
                 // Arguments:
@@ -73,7 +75,7 @@ namespace GOATracer.Preview
 
         public Texture(int glHandle)
         {
-            Handle = glHandle;
+            _handle = glHandle;
         }
 
         // Activate texture
@@ -83,7 +85,7 @@ namespace GOATracer.Preview
         public void Use(TextureUnit unit)
         {
             GL.ActiveTexture(unit);
-            GL.BindTexture(TextureTarget.Texture2D, Handle);
+            GL.BindTexture(TextureTarget.Texture2D, _handle);
         }
     }
 }
