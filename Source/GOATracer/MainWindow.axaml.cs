@@ -5,6 +5,8 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using GOATracer.Importer.Obj;
+using GOATracer.Preview;
+using Window = Avalonia.Controls.Window;
 
 namespace GOATracer;
 
@@ -205,6 +207,7 @@ public partial class MainWindow : Window
     
     private void RenderButtonClicked(object? sender, RoutedEventArgs e)
     {
-        Preview.Program.Launch(_sceneDescription!);
+        var previewRenderer = new PreviewRenderer(_sceneDescription);
+        RenderArea.Children.Add(previewRenderer);
     }
 }

@@ -80,7 +80,7 @@
             </Grid>
 
             <!-- Render area -->
-            <Grid Grid.Column="1" RowDefinitions="3*,1*">
+            <Grid x:Name="RenderArea" Grid.Column="1" RowDefinitions="3*,1*">
                 <TextBox Grid.Row="1" x:Name="LogOutputTextBlock" IsReadOnly="True"/>
             </Grid>
         </Grid>
