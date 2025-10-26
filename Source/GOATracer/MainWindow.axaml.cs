@@ -1,15 +1,10 @@
-using System;
-using System.Globalization;
 using System.IO;
-// using System.Numerics;
-using OpenTK.Mathematics;
 using System.Text;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using GOATracer.Importer.Obj;
-using GOATracer.Preview;
 
 namespace GOATracer;
 
@@ -18,9 +13,7 @@ namespace GOATracer;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private ImportedSceneDescription? _currentSceneDescription;
-    private float aspectRatio;
-    private readonly Camera _previewCamera;
+    private ImportedSceneDescription? _sceneDescription;
     
     /// <summary>
     /// Constructor
@@ -28,9 +21,6 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
-
-        aspectRatio = (float)Bounds.Width / (float)Bounds.Height;
-        _previewCamera = new Camera(new Vector3(0, 0, 0), aspectRatio);
     }
 
     /// <summary>
@@ -84,8 +74,8 @@ public partial class MainWindow : Window
             
             // Output detailed information about the imported 3D model for debugging
             PrintDebugInfo(sceneDescription);
-            
-            RenderPreview.SetScene(sceneDescription, _previewCamera);
+
+            _sceneDescription = sceneDescription;
         }
     }
 
@@ -215,29 +205,6 @@ public partial class MainWindow : Window
     
     private void RenderButtonClicked(object? sender, RoutedEventArgs e)
     {
-        try
-        {
-            _previewCamera.Position = new Vector3(
-                Convert.ToSingle(XPositionTextBox.Text, CultureInfo.InvariantCulture),
-                Convert.ToSingle(YPositionTextBox.Text, CultureInfo.InvariantCulture),
-                Convert.ToSingle(ZPositionTextBox.Text, CultureInfo.InvariantCulture));
-
-            _previewCamera.Pitch = Convert.ToSingle(XRotationTextBox.Text, CultureInfo.InvariantCulture);
-            _previewCamera.Yaw = Convert.ToSingle(YRotationTextBox.Text, CultureInfo.InvariantCulture);
-
-            float xRot = Convert.ToSingle(XRotationTextBox.Text, CultureInfo.InvariantCulture);
-            float yRot = Convert.ToSingle(YRotationTextBox.Text, CultureInfo.InvariantCulture);
-            float zRot = Convert.ToSingle(ZRotationTextBox.Text, CultureInfo.InvariantCulture);
-
-            var model = Matrix4.CreateRotationX(MathHelper.DegreesToRadians(xRot)) * Matrix4.CreateRotationY(MathHelper.DegreesToRadians(yRot)) 
-                * Matrix4.CreateRotationZ(MathHelper.DegreesToRadians(zRot));
-
-            RenderPreview.SetCamera(_previewCamera);
-            RenderPreview.SetModelMatrix(model);
-        }
-        catch(FormatException fe)
-        {
-            Console.WriteLine("Invalid number format in camera settings.");
-        }
+        Preview.Program.Launch(_sceneDescription!);
     }
 }
