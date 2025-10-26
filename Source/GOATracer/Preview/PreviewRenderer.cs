@@ -5,9 +5,9 @@ using Avalonia.OpenGL.Controls;
 using GOATracer.Importer.Obj;
 using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
-using OpenTK.Windowing.GraphicsLibraryFramework;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 
 namespace GOATracer.Preview;
 
@@ -229,10 +229,10 @@ public class PreviewRenderer : OpenGlControlBase
         Focus();
     }
 
-    protected override void OnPointerPressed(PointerPressedEventArgs e)
+    protected override void OnPointerMoved(PointerEventArgs e)
     {
-        base.OnPointerPressed(e);
-        Focus();
+        base.OnPointerMoved(e);
+        
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -245,5 +245,28 @@ public class PreviewRenderer : OpenGlControlBase
     {
         base.OnKeyUp(e);
         _keys.Remove(e.Key);
+    }
+
+    // from: https://github.com/opentk/LearnOpenTK/blob/master/Chapter2/2-BasicLighting/Window.cs
+    public void ApplyMouseLook(float mouseX, float mouseY)
+    {
+
+        if (_camera is null) return;
+        float sensitivity = 0.2f;
+
+        var mouse = new Vector2(mouseX, mouseY);
+        if (_firstMove)
+        {
+            _lastPos = mouse;
+            _firstMove = false;
+        }
+        else
+        {
+            var deltaX = mouse.X - _lastPos.X;
+            var deltaY = mouse.Y - _lastPos.Y;
+            _lastPos = mouse;
+            _camera.Yaw += deltaX * sensitivity;
+            _camera.Pitch -= deltaY * sensitivity;
+        }
     }
 }

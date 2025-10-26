@@ -16,7 +16,8 @@ namespace GOATracer;
 public partial class MainWindow : Window
 {
     private ImportedSceneDescription? _sceneDescription;
-    
+    private bool _mouseLookActive;
+
     /// <summary>
     /// Constructor
     /// </summary>
@@ -35,7 +36,7 @@ public partial class MainWindow : Window
         // Get the parent window to enable file dialog access
         // Source: https://docs.avaloniaui.net/docs/basics/user-interface/file-dialogs
         var topLevel = TopLevel.GetTopLevel(this);
-        
+
         // Show file picker dialog to let user select a .obj file to import
         // Source: https://docs.avaloniaui.net/docs/concepts/services/storage-provider/file-picker-options
         var files = await topLevel!.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
@@ -55,7 +56,7 @@ public partial class MainWindow : Window
         {
             // Clear the last output in the log
             LogOutputTextBlock.Text = "";
-            
+
             // Extract the local file path from the selected file
             var filePath = files[0].Path.LocalPath;
 
@@ -64,16 +65,16 @@ public partial class MainWindow : Window
             // Invalidate the visual and force redraw so the message shows up
             LogOutputTextBlock.InvalidateVisual();
             await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
-            
+
             // Import the .obj file and convert it into our scene data structure
             var sceneDescription = ObjImporter.ImportModel(filePath);
 
             // Set the import stats
-            LoadedFilePathLabel.Content = $"Loaded file: { filePath }";
-            FileSizeLabel.Content = $"File size: { new FileInfo(filePath).Length } bytes";
-            VertexCountLabel.Content = $"Vertex count: { sceneDescription.VertexPoints.Count }";
-            MaterialCountLabel.Content = $"Material count: { sceneDescription.Materials?.Count ?? 0 }";
-            
+            LoadedFilePathLabel.Content = $"Loaded file: {filePath}";
+            FileSizeLabel.Content = $"File size: {new FileInfo(filePath).Length} bytes";
+            VertexCountLabel.Content = $"Vertex count: {sceneDescription.VertexPoints.Count}";
+            MaterialCountLabel.Content = $"Material count: {sceneDescription.Materials?.Count ?? 0}";
+
             // Output detailed information about the imported 3D model for debugging
             PrintDebugInfo(sceneDescription);
 
@@ -89,22 +90,22 @@ public partial class MainWindow : Window
     {
         // Create a StringBuilder to efficiently build the log content
         var logBuilder = new StringBuilder();
-        
+
         // Add scene name and basic information
         logBuilder.AppendLine($"=== SCENE: {importedSceneDescription.FileName} ===");
         logBuilder.AppendLine();
-        
+
         // Log vertex data
-        logBuilder.AppendLine($"--- VERTICES ({ importedSceneDescription.VertexPoints.Count }) ---");
+        logBuilder.AppendLine($"--- VERTICES ({importedSceneDescription.VertexPoints.Count}) ---");
 
         for (var i = 0; i < importedSceneDescription.VertexPoints.Count; i++)
         {
             var vertex = importedSceneDescription.VertexPoints[i];
             logBuilder.AppendLine($"v[{i}]: ({vertex.X}, {vertex.Y}, {vertex.Z})");
         }
-        
+
         logBuilder.AppendLine();
-        
+
         // Log normal data
         logBuilder.AppendLine($"--- NORMALS ({importedSceneDescription.NormalPoints?.Count ?? 0}) ---");
         if (importedSceneDescription.NormalPoints != null)
@@ -116,7 +117,7 @@ public partial class MainWindow : Window
             }
         }
         logBuilder.AppendLine();
-        
+
         // Log texture coordinates
         logBuilder.AppendLine($"--- TEXTURE COORDS ({importedSceneDescription.TexturePoints?.Count ?? 0}) ---");
         if (importedSceneDescription.TexturePoints != null)
@@ -128,7 +129,7 @@ public partial class MainWindow : Window
             }
         }
         logBuilder.AppendLine();
-        
+
         // Log materials
         logBuilder.AppendLine($"--- MATERIALS ({importedSceneDescription.Materials?.Count ?? 0}) ---");
         if (importedSceneDescription.Materials != null)
@@ -147,7 +148,7 @@ public partial class MainWindow : Window
             }
         }
         logBuilder.AppendLine();
-        
+
         // Log objects
         logBuilder.AppendLine($"--- OBJECTS ({importedSceneDescription.ObjectDescriptions?.Count ?? 0}) ---");
         if (importedSceneDescription.ObjectDescriptions != null)
@@ -157,27 +158,27 @@ public partial class MainWindow : Window
                 var obj = importedSceneDescription.ObjectDescriptions[objIndex];
                 logBuilder.AppendLine($"Object {objIndex}: {obj.ObjectName}");
                 logBuilder.AppendLine($"  - Faces: {obj.FacePoints.Count}");
-                
+
                 // Log each face in the object
                 for (int faceIndex = 0; faceIndex < obj.FacePoints.Count; faceIndex++)
                 {
                     var face = obj.FacePoints[faceIndex];
                     logBuilder.Append($"    Face {faceIndex}: Material={face.Material}, Vertices=[");
-                    
+
                     // Log each vertex in the face
                     for (int vIndex = 0; vIndex < face.Indices.Count; vIndex++)
                     {
                         var vertex = face.Indices[vIndex];
                         logBuilder.Append($"(v:{vertex.VertexIndex}");
-                        
+
                         if (vertex.TextureIndex.HasValue)
                             logBuilder.Append($", vt:{vertex.TextureIndex}");
-                        
+
                         if (vertex.NormalIndex.HasValue)
                             logBuilder.Append($", vn:{vertex.NormalIndex}");
-                        
+
                         logBuilder.Append(")");
-                        
+
                         if (vIndex < face.Indices.Count - 1)
                             logBuilder.Append(", ");
                     }
@@ -186,10 +187,10 @@ public partial class MainWindow : Window
                 logBuilder.AppendLine();
             }
         }
-        
+
         // Write the log file to the executable directory
         File.WriteAllText("import.log", logBuilder.ToString());
-        
+
         // Also log to the UI that the debug info was saved
         LogOutputTextBlock.Text += $"\nDebug info written.";
     }
@@ -204,11 +205,46 @@ public partial class MainWindow : Window
         // Close the app
         this.Close();
     }
-    
+
     private void RenderButtonClicked(object? sender, RoutedEventArgs e)
     {
         var previewRenderer = new PreviewRenderer(_sceneDescription);
-        RenderArea.Children.Clear(); // kill previous renderer if any
-        RenderArea.Children.Add(previewRenderer);
+        RenderPanel.Children.Clear(); // kill previous renderer if any
+        RenderPanel.Children.Add(previewRenderer);
+    }
+
+    private void RenderPanel_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    {
+        if (RenderPanel.Children.Count == 0)
+            return;
+        PreviewRenderer previewRenderer = (PreviewRenderer)RenderPanel.Children[0];
+        previewRenderer?.Focus();
+
+        var pt = e.GetCurrentPoint(RenderPanel);
+        if (pt.Properties.IsLeftButtonPressed)
+        {
+            _mouseLookActive = true;
+            e.Pointer.Capture(RenderPanel);
+        }
+    }
+
+    private void RenderPanel_PointerMoved(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        if (!_mouseLookActive || RenderPanel.Children.Count == 0) return;
+
+        var pos = e.GetPosition(RenderPanel);
+
+        var previewRenderer = (PreviewRenderer)RenderPanel.Children[0];
+        previewRenderer.ApplyMouseLook((float)pos.X, (float)pos.Y);
+    }
+
+    private void RenderPanel_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
+    {
+        if (!_mouseLookActive) return;
+
+        _mouseLookActive = false;
+
+        e.Pointer.Capture(null);
+        RenderPanel.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
     }
 }
