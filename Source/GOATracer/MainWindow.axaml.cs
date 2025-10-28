@@ -245,6 +245,5 @@ public partial class MainWindow : Window
         _mouseLookActive = false;
 
         e.Pointer.Capture(null);
-        RenderPanel.Cursor = new Avalonia.Input.Cursor(Avalonia.Input.StandardCursorType.Arrow);
     }
 }

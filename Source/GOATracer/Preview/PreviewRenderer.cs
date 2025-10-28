@@ -28,7 +28,7 @@ public class PreviewRenderer : OpenGlControlBase
 
     private HashSet<Key> _keys = new HashSet<Key>();
 
-    // BindingsContext, damit OpenTK seine GL-Funktionen über Avalonia lädt
+    // BindingsContext, so OpenTK loads GL methods over Avalonia
     private sealed class AvaloniaBindingsContext : OpenTK.IBindingsContext
     {
         private readonly GlInterface _gl;
@@ -41,15 +41,17 @@ public class PreviewRenderer : OpenGlControlBase
     /// </summary>
     public PreviewRenderer(ImportedSceneDescription sceneDescription)
     {
-        this.Focusable = true;
+        this.Focusable = true; // make sure we can get keyboard focus
 
         var vertexDataList = new List<float>();
 
         // Default normal, if no other is available
         var defaultNormal = Vector3.UnitY;
 
+        // loop through all objects in the scene
         foreach (var objDesc in sceneDescription.ObjectDescriptions!)
         {
+            // loop through all faces in the object
             foreach (var face in objDesc.FacePoints)
             {
                 // OBJ-faces can have more than 3 points => triangulation needed
@@ -58,13 +60,13 @@ public class PreviewRenderer : OpenGlControlBase
 
                 for (var i = 1; i < face.Indices.Count - 1; i++)
                 {
-                    var v1 = face.Indices[i];
-                    var v2 = face.Indices[i + 1];
+                    var v1 = face.Indices[i];       // second vertex of the triangle
+                    var v2 = face.Indices[i + 1];   // third vertex of the triangle
 
-                    // Add the data for the vertices of the triangle
+                    // Add all vertex data for the triangle for each triangle corner
                     foreach (var fv in new[] { rootVertex, v1, v2 })
                     {
-                        // Get the position (Index is 1-based)
+                        // Get the vertex position (.obj Index is 1-based)
                         var pos = (Vector3)sceneDescription.VertexPoints[fv.VertexIndex - 1];
                         vertexDataList.Add(pos.X);
                         vertexDataList.Add(pos.Y);
@@ -79,6 +81,7 @@ public class PreviewRenderer : OpenGlControlBase
                             norm = (Vector3)sceneDescription.NormalPoints[fv.NormalIndex.Value - 1];
                         }
 
+                        // add normal data to vertex data
                         vertexDataList.Add(norm.X);
                         vertexDataList.Add(norm.Y);
                         vertexDataList.Add(norm.Z);
@@ -97,25 +100,35 @@ public class PreviewRenderer : OpenGlControlBase
     {
         base.OnOpenGlInit(gl);
 
+        // allows OpenTK to load OpenGL functions using Avalonia's GL context
         GL.LoadBindings(new AvaloniaBindingsContext(gl));
         _glLoaded = true;
 
+        // This will be the color of the background after we clear it, in normalized colors.
+        // This is black.
         GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
+        // To see which triangles are in front of others
         GL.Enable(EnableCap.DepthTest);
 
+        // We need to send our vertices over to the graphics card so OpenGL can use them -> create a VBO & send buffer to 
+        // stores vertex data in GPU memory
         _vertexBufferObject = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
         GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices,
             BufferUsageHint.StaticDraw);
 
+        // Shaders are tiny programs that live on the GPU. OpenGL uses them to handle the vertex-to-pixel pipeline.
         _lightingShader = new Shader("Shaders/shader.vert", "Shaders/lighting.frag");
         _lampShader = new Shader("Shaders/shader.vert", "Shaders/shader.frag");
 
         {
+            // Vertex Array Obejct (VAO) has the job of keeping track of what parts or what buffers correspond to what data & bind it
+            // stores state of vertex attribute configurations (how data is laid out etc.)
             _vaoModel = GL.GenVertexArray();
             GL.BindVertexArray(_vaoModel);
 
+            // Shader attributes linked to VBO data (VAO stores the mapping)
             var positionLocation = _lightingShader.GetAttribLocation("aPos");
             GL.EnableVertexAttribArray(positionLocation);
             GL.VertexAttribPointer(positionLocation, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
@@ -135,6 +148,7 @@ public class PreviewRenderer : OpenGlControlBase
             GL.VertexAttribPointer(positionLocation, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
         }
 
+        // set camera on position (0,0,3) and aspect ratio according to the control size
         _camera = new Camera(Vector3.UnitZ * 3, (float)(Bounds.Width / Bounds.Height));
     }
 
@@ -145,8 +159,10 @@ public class PreviewRenderer : OpenGlControlBase
 
     protected override void OnOpenGlRender(GlInterface gl, int fb)
     {
+        // check if GL is loaded
         if (!_glLoaded) return;
-        
+
+        // set viewport according to the control size
         int w = Math.Max(1, (int)Bounds.Width);
         int h = Math.Max(1, (int)Bounds.Height);
         GL.Viewport(0, 0, w, h);
@@ -155,8 +171,10 @@ public class PreviewRenderer : OpenGlControlBase
 
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
+        // bind VOA, how to interpret vertex data
         GL.BindVertexArray(_vaoModel);
 
+        // use our shader
         _lightingShader.Use();
 
         _lightingShader.SetMatrix4("model", Matrix4.Identity);
@@ -188,6 +206,7 @@ public class PreviewRenderer : OpenGlControlBase
         _lightingShader.SetVector3("light.diffuse", diffuseColor);
         _lightingShader.SetVector3("light.specular", new Vector3(1.0f, 1.0f, 1.0f));
 
+        // call to draw the vertices
         GL.DrawArrays(PrimitiveType.Triangles, 0, _vertexCountToDraw);
 
         GL.BindVertexArray(_vaoLamp);
@@ -207,12 +226,15 @@ public class PreviewRenderer : OpenGlControlBase
         RequestNextFrameRendering();
     }
 
+    /// <summary>
+    /// Handles keyboard input for camera movement.
+    /// From: https://github.com/opentk/LearnOpenTK/blob/master/Chapter2/2-BasicLighting/Window.cs
+    /// </summary>
     private void HandleKeyboard()
     {
         if (_camera is null) return;
 
         const float cameraSpeed = 0.5f;
-        const float sensitivity = 0.2f;
 
         if (_keys.Contains(Key.W)) _camera.Position += _camera.Front * cameraSpeed;
         if (_keys.Contains(Key.S)) _camera.Position -= _camera.Front * cameraSpeed;
@@ -246,15 +268,19 @@ public class PreviewRenderer : OpenGlControlBase
         base.OnKeyUp(e);
         _keys.Remove(e.Key);
     }
-
-    // from: https://github.com/opentk/LearnOpenTK/blob/master/Chapter2/2-BasicLighting/Window.cs
+    /// <summary>
+    /// Updates the camera orientation based on mouse movement.
+    /// From: https://github.com/opentk/LearnOpenTK/blob/master/Chapter2/2-BasicLighting/Window.cs
+    /// </summary>
+    /// <param name="mouseX"></param>
+    /// <param name="mouseY"></param>
     public void ApplyMouseLook(float mouseX, float mouseY)
     {
-
+        // check if camera is initialized
         if (_camera is null) return;
-        float sensitivity = 0.2f;
+        float sensitivity = 0.4f;
 
-        var mouse = new Vector2(mouseX, mouseY);
+        var mouse = new Vector2(mouseX, mouseY); // current mouse position
         if (_firstMove)
         {
             _lastPos = mouse;
@@ -262,11 +288,11 @@ public class PreviewRenderer : OpenGlControlBase
         }
         else
         {
-            var deltaX = mouse.X - _lastPos.X;
-            var deltaY = mouse.Y - _lastPos.Y;
-            _lastPos = mouse;
-            _camera.Yaw += deltaX * sensitivity;
-            _camera.Pitch -= deltaY * sensitivity;
+            var deltaX = mouse.X - _lastPos.X; // mouse movement on X axis
+            var deltaY = mouse.Y - _lastPos.Y; // mouse movement on Y axis
+            _lastPos = mouse; // update last position of the mouse
+            _camera.Yaw += deltaX * sensitivity; // camera horizontal rotation
+            _camera.Pitch -= deltaY * sensitivity; // camera vertical rotation
         }
     }
 }
