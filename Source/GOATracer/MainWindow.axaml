@@ -5,7 +5,7 @@
         mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
         x:Class="GOATracer.MainWindow"
         Title="GOATracer"
-        Background="rgb(34,34,34)"
+        Background="#222222"
         Foreground="White">
     
     <Border Padding="10">
@@ -13,8 +13,8 @@
     <DockPanel>
             <!-- Top toolbar -->
             <Menu DockPanel.Dock="Top">
-                <Button Grid.Column="0" Content="Choose file&#xE8A5;" Background="DarkRed" Foreground="White" VerticalAlignment="Center" />
-                <Button Grid.Column="1" Content="Load" Background="DarkRed" Foreground="White" VerticalAlignment="Center" />
+                <Button x:Name="FileChooser" Grid.Column="0" Content="Choose file&#xE8A5;" Background="DarkRed" Foreground="White" VerticalAlignment="Center" Click="FileChooser_Click" />
+               
             </Menu>
         
     
@@ -30,26 +30,30 @@
                     <Grid.RowDefinitions>
                         <RowDefinition Height="*" />
                         <RowDefinition Height="*" />
+                        <RowDefinition Height="*" />
                         <RowDefinition Height="40" />
                     </Grid.RowDefinitions>
                     
+                    <!-- Camera Settings -->
                     <Grid Grid.Row="0" Margin="5" RowDefinitions="*,*,*,*,*,*,*" ColumnDefinitions="*,*,*">
                         <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Content="Camera settings" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
                         <Label Grid.Row="1" Grid.Column="0" Content="X-Position" FontSize="10"  VerticalAlignment="Center"/>
                         <Label Grid.Row="1" Grid.Column="1" Content="Y-Position" FontSize="10" VerticalAlignment="Center"/>
                         <Label Grid.Row="1" Grid.Column="2" Content="Z-Position" FontSize="10" VerticalAlignment="Center"/>
-                        <NumericUpDown Grid.Row="2" Grid.Column="0" Margin="0 0 5 0" Value="1" Increment="1"></NumericUpDown>
-                        <NumericUpDown Grid.Row="2" Grid.Column="1" Value="1" Increment="1"></NumericUpDown>
-                        <NumericUpDown Grid.Row="2" Grid.Column="2" Margin=" 5 0 0 0" Value="1" Increment="1"></NumericUpDown>
+                        <NumericUpDown Name="CameraPositionX" Grid.Row="2" Grid.Column="0" Margin="0 0 5 0" Value="1" Increment="1"></NumericUpDown>
+                        <NumericUpDown Name="CameraPositionY" Grid.Row="2" Grid.Column="1" Value="1" Increment="1"></NumericUpDown>
+                        <NumericUpDown Name="CameraPositionZ" Grid.Row="2" Grid.Column="2" Margin=" 5 0 0 0" Value="1" Increment="1"></NumericUpDown>
                         <Label Grid.Row="3" Grid.Column="0" Content="X-Rotation" FontSize="10" VerticalAlignment="Center"/>
                         <Label Grid.Row="3" Grid.Column="1" Content="Y-Rotation" FontSize="10" VerticalAlignment="Center"/>
                         <Label Grid.Row="3" Grid.Column="2" Content="Z-Rotation" FontSize="10" VerticalAlignment="Center"/>
-                        <NumericUpDown Grid.Row="4" Grid.Column="0" Margin="0 0 5 0" Value="1" Increment="1"></NumericUpDown>
-                        <NumericUpDown Grid.Row="4" Grid.Column="1" Value="1" Increment="1"></NumericUpDown>
-                        <NumericUpDown Grid.Row="4" Grid.Column="2" Margin=" 5 0 0 0" Value="1" Increment="1"></NumericUpDown>
-                        <Button Grid.Row="5" Grid.Column="0" Content="Choose file" Background="DarkRed" Foreground="White" VerticalAlignment="Center"/>
+                        <NumericUpDown Name="CameraRotationX" Grid.Row="4" Grid.Column="0" Margin="0 0 5 0" Value="1" Increment="1"></NumericUpDown>
+                        <NumericUpDown Name="CameraRotationY" Grid.Row="4" Grid.Column="1" Value="1" Increment="1"></NumericUpDown>
+                        <NumericUpDown Name="CameraRotationZ" Grid.Row="4" Grid.Column="2" Margin=" 5 0 0 0" Value="1" Increment="1"></NumericUpDown>
+                        <Button Grid.Row="5" Grid.Column="0" Content="Save Settings" Background="DarkRed" Foreground="White" VerticalAlignment="Center"/>
+                        <Button Grid.Row="5" Grid.Column="1" Content="Load Settings" Background="DarkRed" Foreground="White" VerticalAlignment="Center"/>
                     </Grid>
                     
+                    <!-- Lightsettings grid -->
                     <Grid Grid.Row="1" Margin="5" RowDefinitions="*,*,*,*,*,*" ColumnDefinitions="*,*,*">
                         <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Content="Light settings" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
                         <Button Grid.Row="1" Grid.Column="0" Content="+" Background="DarkRed" Foreground="White" VerticalAlignment="Center"/>
@@ -76,8 +80,34 @@
                                 </StackPanel>
                             </ComboBoxItem>
                         </ComboBox>
-                    </Grid>
+                   
                 </Grid>
+                
+                <!-- Image Size Settings -->
+                <Grid Grid.Row="2" RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,*">
+                    <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="Image Size" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+    
+                    <Label Grid.Row="1" Grid.Column="0" Content="Width" FontSize="10" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="1" Grid.Column="1" Text="800"/>
+
+                    <Label Grid.Row="2" Grid.Column="0" Content="Height" FontSize="10" VerticalAlignment="Center"/>
+                    <TextBox Grid.Row="2" Grid.Column="1" Text="600"/>
+                </Grid>
+
+                    <!-- Render Button -->
+                    <Button Grid.Row="3" Height="40" Width="200" Content="Render" Background="DarkRed" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"  Click="RenderClick"/>
+                    
+                    
+                </Grid>
+
+
+                <!-- Preview area -->
+                <Panel Grid.Column="2" Margin="5" Background="Gray">
+                        <Image x:Name="PreviewImage" Stretch="Uniform" Source="avares://GOATRacer/Assets/teapot.png"> </Image>        
+
+                </Panel>
+
+
             </Grid>
         </DockPanel>
     </Border>
