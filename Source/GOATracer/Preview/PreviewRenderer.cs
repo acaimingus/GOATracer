@@ -308,7 +308,7 @@ public class PreviewRenderer : OpenGlControlBase
     /// <param name="mouseY"></param>
     public void ApplyMouseLook(float mouseX, float mouseY)
     {
-        // check if camera is initialized
+        // Mouse sensitivity
         const float sensitivity = 0.4f;
 
         // current mouse position

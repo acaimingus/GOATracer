@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
@@ -15,8 +16,8 @@ namespace GOATracer;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private bool _mouseLookActive;
-
+    private bool _mouseLookActive = false;
+    
     /// <summary>
     /// Constructor
     /// </summary>
@@ -213,22 +214,41 @@ public partial class MainWindow : Window
         // From here the raytracer component will be called
     }
 
-    private void RenderPanel_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
+    /// <summary>
+    /// Event handler for when a mouse button is pressed
+    /// </summary>
+    /// <param name="sender">Mouse button pressed</param>
+    /// <param name="eventData">Event data</param>
+    private void RenderPanel_PointerPressed(object? sender, PointerPressedEventArgs eventData)
     {
         if (RenderPanel.Children.Count == 0)
             return;
         var previewRenderer = (PreviewRenderer)RenderPanel.Children[0];
         previewRenderer?.Focus();
 
-        var pt = e.GetCurrentPoint(RenderPanel);
+        var pt = eventData.GetCurrentPoint(RenderPanel);
         if (pt.Properties.IsLeftButtonPressed)
         {
             _mouseLookActive = true;
-            e.Pointer.Capture(RenderPanel);
+            eventData.Pointer.Capture(RenderPanel);
         }
     }
 
-    private void RenderPanel_PointerMoved(object? sender, Avalonia.Input.PointerEventArgs e)
+    /// <summary>
+    /// Event handler for when mouse buttons are released for the preview panel
+    /// </summary>
+    /// <param name="sender">Released mouse button</param>
+    /// <param name="eventData">Event data</param>
+    private void RenderPanel_PointerReleased(object? sender, PointerReleasedEventArgs eventData)
+    {
+        if (eventData.InitialPressMouseButton == MouseButton.Left)
+        {
+            // Disable looking with the mouse in the preview
+            _mouseLookActive = false;
+        }
+    }
+
+    private void RenderPanel_PointerMoved(object? sender, PointerEventArgs e)
     {
         if (!_mouseLookActive || RenderPanel.Children.Count == 0) return;
 
@@ -236,14 +256,5 @@ public partial class MainWindow : Window
 
         var previewRenderer = (PreviewRenderer)RenderPanel.Children[0];
         previewRenderer.ApplyMouseLook((float)pos.X, (float)pos.Y);
-    }
-
-    private void RenderPanel_PointerExited(object? sender, Avalonia.Input.PointerEventArgs e)
-    {
-        if (!_mouseLookActive) return;
-
-        _mouseLookActive = false;
-
-        e.Pointer.Capture(null);
     }
 }
