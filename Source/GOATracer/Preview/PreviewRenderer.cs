@@ -24,6 +24,7 @@ public class PreviewRenderer : OpenGlControlBase
     private bool _firstMove = true;
     private Vector2 _lastPos;
     private bool _glLoaded;
+    private float _cameraSpeed = 0.5f;
 
     private readonly HashSet<Key> _keys = [];
 
@@ -222,20 +223,63 @@ public class PreviewRenderer : OpenGlControlBase
 
     /// <summary>
     /// Handles keyboard input for camera movement.
-    /// From: https://github.com/opentk/LearnOpenTK/blob/master/Chapter2/2-BasicLighting/Window.cs
+    /// Source: https://github.com/opentk/LearnOpenTK/blob/master/Chapter2/2-BasicLighting/Window.cs
     /// </summary>
     private void HandleKeyboard()
     {
-        if (_camera is null) return;
+        // Slow down camera speed
+        if (_keys.Contains(Key.O))
+        {
+            _cameraSpeed -= 0.01f;
+            
+            // Bound the minimum speed of the camera to 0.1f
+            if (_cameraSpeed < 0.1f)
+            {
+                _cameraSpeed = 0.1f;
+            }
+        }
 
-        const float cameraSpeed = 0.5f;
-        
-        if (_keys.Contains(Key.W)) _camera.Position += _camera.Front * cameraSpeed;
-        if (_keys.Contains(Key.S)) _camera.Position -= _camera.Front * cameraSpeed;
-        if (_keys.Contains(Key.A)) _camera.Position -= _camera.Right * cameraSpeed;
-        if (_keys.Contains(Key.D)) _camera.Position += _camera.Right * cameraSpeed;
-        if (_keys.Contains(Key.Space)) _camera.Position += _camera.Up * cameraSpeed;
-        if (_keys.Contains(Key.LeftShift) || _keys.Contains(Key.RightShift)) _camera.Position -= _camera.Up * cameraSpeed;
+        // Speed up camera speed
+        if (_keys.Contains(Key.P))
+        {
+            _cameraSpeed += 0.01f;
+        }
+
+        // Move camera forward
+        if (_keys.Contains(Key.W))
+        {
+            _camera.Position += _camera.Front * _cameraSpeed;
+        }
+
+        // Move camera backward
+        if (_keys.Contains(Key.S))
+        {
+            _camera.Position -= _camera.Front * _cameraSpeed;
+        }
+
+        // Move camera to the left
+        if (_keys.Contains(Key.A))
+        {
+            _camera.Position -= _camera.Right * _cameraSpeed;
+        }
+
+        // Move camera to the right
+        if (_keys.Contains(Key.D))
+        {
+            _camera.Position += _camera.Right * _cameraSpeed;
+        }
+
+        // Raise the camera
+        if (_keys.Contains(Key.Space))
+        {
+            _camera.Position += _camera.Up * _cameraSpeed;
+        }
+
+        // Lower the camera
+        if (_keys.Contains(Key.LeftShift) || _keys.Contains(Key.RightShift))
+        {
+            _camera.Position -= _camera.Up * _cameraSpeed;
+        }
     }
 
     // Focus on the previewer when it is visible
