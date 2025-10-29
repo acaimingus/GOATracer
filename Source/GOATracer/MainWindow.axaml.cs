@@ -221,15 +221,25 @@ public partial class MainWindow : Window
     /// <param name="eventData">Event data</param>
     private void RenderPanel_PointerPressed(object? sender, PointerPressedEventArgs eventData)
     {
+        // Exit the method if there is no preview renderer
         if (RenderPanel.Children.Count == 0)
+        {
             return;
+        }
+
+        // Get the preview renderer
         var previewRenderer = (PreviewRenderer)RenderPanel.Children[0];
         previewRenderer?.Focus();
 
+        // Check if the left mouse button is pressed
         var pt = eventData.GetCurrentPoint(RenderPanel);
         if (pt.Properties.IsLeftButtonPressed)
         {
+            // Set the flag for mouse look
             _mouseLookActive = true;
+            // Reset the mouse look flags in the preview renderer to eliminate mouse jump
+            previewRenderer?.ResetMouseLook();
+            // Capture the click
             eventData.Pointer.Capture(RenderPanel);
         }
     }

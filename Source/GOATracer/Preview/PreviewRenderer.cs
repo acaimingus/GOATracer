@@ -332,4 +332,12 @@ public class PreviewRenderer : OpenGlControlBase
             _camera.Pitch -= deltaY * sensitivity;
         }
     }
+
+    /// <summary>
+    /// Helper method for resetting MouseLook for each new click to remove mouse jump
+    /// </summary>
+    public void ResetMouseLook()
+    {
+        _firstMove = true;
+    }
 }
