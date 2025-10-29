@@ -112,7 +112,7 @@ public partial class MainWindow : Window
         logBuilder.AppendLine($"--- NORMALS ({importedSceneDescription.NormalPoints?.Count ?? 0}) ---");
         if (importedSceneDescription.NormalPoints != null)
         {
-            for (int i = 0; i < importedSceneDescription.NormalPoints.Count; i++)
+            for (var i = 0; i < importedSceneDescription.NormalPoints.Count; i++)
             {
                 var normal = importedSceneDescription.NormalPoints[i];
                 logBuilder.AppendLine($"vn[{i}]: ({normal.X}, {normal.Y}, {normal.Z})");
@@ -124,7 +124,7 @@ public partial class MainWindow : Window
         logBuilder.AppendLine($"--- TEXTURE COORDS ({importedSceneDescription.TexturePoints?.Count ?? 0}) ---");
         if (importedSceneDescription.TexturePoints != null)
         {
-            for (int i = 0; i < importedSceneDescription.TexturePoints.Count; i++)
+            for (var i = 0; i < importedSceneDescription.TexturePoints.Count; i++)
             {
                 var tex = importedSceneDescription.TexturePoints[i];
                 logBuilder.AppendLine($"vt[{i}]: ({tex.X}, {tex.Y}, {tex.Z})");
@@ -155,20 +155,20 @@ public partial class MainWindow : Window
         logBuilder.AppendLine($"--- OBJECTS ({importedSceneDescription.ObjectDescriptions?.Count ?? 0}) ---");
         if (importedSceneDescription.ObjectDescriptions != null)
         {
-            for (int objIndex = 0; objIndex < importedSceneDescription.ObjectDescriptions.Count; objIndex++)
+            for (var objIndex = 0; objIndex < importedSceneDescription.ObjectDescriptions.Count; objIndex++)
             {
                 var obj = importedSceneDescription.ObjectDescriptions[objIndex];
                 logBuilder.AppendLine($"Object {objIndex}: {obj.ObjectName}");
                 logBuilder.AppendLine($"  - Faces: {obj.FacePoints.Count}");
 
                 // Log each face in the object
-                for (int faceIndex = 0; faceIndex < obj.FacePoints.Count; faceIndex++)
+                for (var faceIndex = 0; faceIndex < obj.FacePoints.Count; faceIndex++)
                 {
                     var face = obj.FacePoints[faceIndex];
                     logBuilder.Append($"    Face {faceIndex}: Material={face.Material}, Vertices=[");
 
                     // Log each vertex in the face
-                    for (int vIndex = 0; vIndex < face.Indices.Count; vIndex++)
+                    for (var vIndex = 0; vIndex < face.Indices.Count; vIndex++)
                     {
                         var vertex = face.Indices[vIndex];
                         logBuilder.Append($"(v:{vertex.VertexIndex}");
@@ -179,7 +179,7 @@ public partial class MainWindow : Window
                         if (vertex.NormalIndex.HasValue)
                             logBuilder.Append($", vn:{vertex.NormalIndex}");
 
-                        logBuilder.Append(")");
+                        logBuilder.Append(')');
 
                         if (vIndex < face.Indices.Count - 1)
                             logBuilder.Append(", ");
