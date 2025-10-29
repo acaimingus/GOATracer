@@ -7,7 +7,6 @@ using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
-using System.Threading;
 
 namespace GOATracer.Preview;
 
@@ -19,14 +18,14 @@ public class PreviewRenderer : OpenGlControlBase
     private int _vertexBufferObject;
     private int _vaoModel;
     private int _vaoLamp;
-    private Shader _lampShader;
-    private Shader _lightingShader;
-    private Camera _camera;
+    private Shader _lampShader = null!;
+    private Shader _lightingShader = null!;
+    private Camera _camera = null!;
     private bool _firstMove = true;
     private Vector2 _lastPos;
     private bool _glLoaded;
 
-    private HashSet<Key> _keys = new HashSet<Key>();
+    private readonly HashSet<Key> _keys = [];
 
     // BindingsContext, so OpenTK loads GL methods over Avalonia
     private sealed class AvaloniaBindingsContext : OpenTK.IBindingsContext
@@ -123,7 +122,7 @@ public class PreviewRenderer : OpenGlControlBase
         _lampShader = new Shader("Shaders/shader.vert", "Shaders/shader.frag");
 
         {
-            // Vertex Array Obejct (VAO) has the job of keeping track of what parts or what buffers correspond to what data & bind it
+            // Vertex Array Object (VAO) has the job of keeping track of what parts or what buffers correspond to what data & bind it
             // stores state of vertex attribute configurations (how data is laid out etc.)
             _vaoModel = GL.GenVertexArray();
             GL.BindVertexArray(_vaoModel);
@@ -152,19 +151,14 @@ public class PreviewRenderer : OpenGlControlBase
         _camera = new Camera(Vector3.UnitZ * 3, (float)(Bounds.Width / Bounds.Height));
     }
 
-    protected override void OnOpenGlDeinit(GlInterface gl)
-    {
-        base.OnOpenGlDeinit(gl);
-    }
-
     protected override void OnOpenGlRender(GlInterface gl, int fb)
     {
         // check if GL is loaded
         if (!_glLoaded) return;
 
         // set viewport according to the control size
-        int w = Math.Max(1, (int)Bounds.Width);
-        int h = Math.Max(1, (int)Bounds.Height);
+        var w = Math.Max(1, (int)Bounds.Width);
+        var h = Math.Max(1, (int)Bounds.Height);
         GL.Viewport(0, 0, w, h);
 
         HandleKeyboard();
@@ -235,7 +229,7 @@ public class PreviewRenderer : OpenGlControlBase
         if (_camera is null) return;
 
         const float cameraSpeed = 0.5f;
-
+        
         if (_keys.Contains(Key.W)) _camera.Position += _camera.Front * cameraSpeed;
         if (_keys.Contains(Key.S)) _camera.Position -= _camera.Front * cameraSpeed;
         if (_keys.Contains(Key.A)) _camera.Position -= _camera.Right * cameraSpeed;
@@ -249,12 +243,6 @@ public class PreviewRenderer : OpenGlControlBase
     {
         base.OnAttachedToVisualTree(e);
         Focus();
-    }
-
-    protected override void OnPointerMoved(PointerEventArgs e)
-    {
-        base.OnPointerMoved(e);
-        
     }
 
     protected override void OnKeyDown(KeyEventArgs e)
@@ -278,9 +266,10 @@ public class PreviewRenderer : OpenGlControlBase
     {
         // check if camera is initialized
         if (_camera is null) return;
-        float sensitivity = 0.4f;
+        const float sensitivity = 0.4f;
 
-        var mouse = new Vector2(mouseX, mouseY); // current mouse position
+        // current mouse position
+        var mouse = new Vector2(mouseX, mouseY);
         if (_firstMove)
         {
             _lastPos = mouse;
@@ -288,11 +277,16 @@ public class PreviewRenderer : OpenGlControlBase
         }
         else
         {
-            var deltaX = mouse.X - _lastPos.X; // mouse movement on X axis
-            var deltaY = mouse.Y - _lastPos.Y; // mouse movement on Y axis
-            _lastPos = mouse; // update last position of the mouse
-            _camera.Yaw += deltaX * sensitivity; // camera horizontal rotation
-            _camera.Pitch -= deltaY * sensitivity; // camera vertical rotation
+            // mouse movement on X axis
+            var deltaX = mouse.X - _lastPos.X;
+            // mouse movement on Y axis
+            var deltaY = mouse.Y - _lastPos.Y;
+            // update last position of the mouse
+            _lastPos = mouse;
+            // camera horizontal rotation
+            _camera.Yaw += deltaX * sensitivity;
+            // camera vertical rotation
+            _camera.Pitch -= deltaY * sensitivity;
         }
     }
 }
