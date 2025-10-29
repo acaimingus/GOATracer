@@ -34,7 +34,7 @@ namespace GOATracer.Preview
         public Vector3 Position { get; set; }
 
         // This is simply the aspect ratio of the viewport, used for the projection matrix.
-        public float AspectRatio { private get; set; }
+        private float AspectRatio { get; }
 
         public Vector3 Front => _front;
 

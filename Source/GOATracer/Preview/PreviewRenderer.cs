@@ -28,7 +28,9 @@ public class PreviewRenderer : OpenGlControlBase
 
     private readonly HashSet<Key> _keys = [];
 
-    // BindingsContext, so OpenTK loads GL methods over Avalonia
+    /// <summary>
+    /// BindingsContext, so OpenTK loads GL methods over Avalonia
+    /// </summary>
     private sealed class AvaloniaBindingsContext : OpenTK.IBindingsContext
     {
         private readonly GlInterface _gl;
@@ -41,7 +43,8 @@ public class PreviewRenderer : OpenGlControlBase
     /// </summary>
     public PreviewRenderer(ImportedSceneDescription sceneDescription)
     {
-        this.Focusable = true; // make sure we can get keyboard focus
+        // Make sure we can get keyboard focus
+        this.Focusable = true;
 
         var vertexDataList = new List<float>();
 
@@ -60,8 +63,10 @@ public class PreviewRenderer : OpenGlControlBase
 
                 for (var i = 1; i < face.Indices.Count - 1; i++)
                 {
-                    var v1 = face.Indices[i];       // second vertex of the triangle
-                    var v2 = face.Indices[i + 1];   // third vertex of the triangle
+                    // Second vertex of the triangle
+                    var v1 = face.Indices[i];
+                    // Third vertex of the triangle
+                    var v2 = face.Indices[i + 1];
 
                     // Add all vertex data for the triangle for each triangle corner
                     foreach (var fv in new[] { rootVertex, v1, v2 })
@@ -81,7 +86,7 @@ public class PreviewRenderer : OpenGlControlBase
                             norm = (Vector3)sceneDescription.NormalPoints[fv.NormalIndex.Value - 1];
                         }
 
-                        // add normal data to vertex data
+                        // Add normal data to vertex data
                         vertexDataList.Add(norm.X);
                         vertexDataList.Add(norm.Y);
                         vertexDataList.Add(norm.Z);
@@ -100,7 +105,7 @@ public class PreviewRenderer : OpenGlControlBase
     {
         base.OnOpenGlInit(gl);
 
-        // allows OpenTK to load OpenGL functions using Avalonia's GL context
+        // Allows OpenTK to load OpenGL functions using Avalonia's GL context
         GL.LoadBindings(new AvaloniaBindingsContext(gl));
         _glLoaded = true;
 
@@ -157,13 +162,14 @@ public class PreviewRenderer : OpenGlControlBase
         // check if GL is loaded
         if (!_glLoaded) return;
 
+        // Handle controls in the viewport
+        HandleKeyboard();
+        
         // set viewport according to the control size
         var w = Math.Max(1, (int)Bounds.Width);
         var h = Math.Max(1, (int)Bounds.Height);
         GL.Viewport(0, 0, w, h);
-
-        HandleKeyboard();
-
+        
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
         // bind VOA, how to interpret vertex data
@@ -171,11 +177,9 @@ public class PreviewRenderer : OpenGlControlBase
 
         // use our shader
         _lightingShader.Use();
-
         _lightingShader.SetMatrix4("model", Matrix4.Identity);
         _lightingShader.SetMatrix4("view", _camera.GetViewMatrix());
         _lightingShader.SetMatrix4("projection", _camera.GetProjectionMatrix());
-
         _lightingShader.SetVector3("viewPos", _camera.Position);
 
         // Here we set the material values of the cube, the material struct is just a container so to access
@@ -282,30 +286,41 @@ public class PreviewRenderer : OpenGlControlBase
         }
     }
 
-    // Focus on the previewer when it is visible
-    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    /// <summary>
+    /// Focus on the previewer when it is visible
+    /// </summary>
+    /// <param name="eventData">Event data</param>
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs eventData)
     {
-        base.OnAttachedToVisualTree(e);
+        base.OnAttachedToVisualTree(eventData);
         Focus();
     }
 
-    protected override void OnKeyDown(KeyEventArgs e)
+    /// <summary>
+    /// Event handler for key presses
+    /// </summary>
+    /// <param name="eventData">Event data</param>
+    protected override void OnKeyDown(KeyEventArgs eventData)
     {
-        base.OnKeyDown(e);
-        _keys.Add(e.Key);
+        base.OnKeyDown(eventData);
+        _keys.Add(eventData.Key);
     }
 
-    protected override void OnKeyUp(KeyEventArgs e)
+    /// <summary>
+    /// Event handler for key releases
+    /// </summary>
+    /// <param name="eventData"></param>
+    protected override void OnKeyUp(KeyEventArgs eventData)
     {
-        base.OnKeyUp(e);
-        _keys.Remove(e.Key);
+        base.OnKeyUp(eventData);
+        _keys.Remove(eventData.Key);
     }
     /// <summary>
     /// Updates the camera orientation based on mouse movement.
-    /// From: https://github.com/opentk/LearnOpenTK/blob/master/Chapter2/2-BasicLighting/Window.cs
+    /// Source: https://github.com/opentk/LearnOpenTK/blob/master/Chapter2/2-BasicLighting/Window.cs
     /// </summary>
-    /// <param name="mouseX"></param>
-    /// <param name="mouseY"></param>
+    /// <param name="mouseX">Horizontal mouse movement</param>
+    /// <param name="mouseY">Vertical mouse movement</param>
     public void ApplyMouseLook(float mouseX, float mouseY)
     {
         // Mouse sensitivity
