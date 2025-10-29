@@ -15,7 +15,6 @@ namespace GOATracer;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private ImportedSceneDescription? _sceneDescription;
     private bool _mouseLookActive;
 
     /// <summary>
@@ -77,8 +76,11 @@ public partial class MainWindow : Window
 
             // Output detailed information about the imported 3D model for debugging
             PrintDebugInfo(sceneDescription);
-
-            _sceneDescription = sceneDescription;
+            
+            // Load the preview for the imported object
+            var previewRenderer = new PreviewRenderer(sceneDescription);
+            RenderPanel.Children.Clear(); // kill previous renderer if any
+            RenderPanel.Children.Add(previewRenderer);
         }
     }
 
@@ -208,16 +210,14 @@ public partial class MainWindow : Window
 
     private void RenderButtonClicked(object? sender, RoutedEventArgs e)
     {
-        var previewRenderer = new PreviewRenderer(_sceneDescription);
-        RenderPanel.Children.Clear(); // kill previous renderer if any
-        RenderPanel.Children.Add(previewRenderer);
+        // From here the raytracer component will be called
     }
 
     private void RenderPanel_PointerPressed(object? sender, Avalonia.Input.PointerPressedEventArgs e)
     {
         if (RenderPanel.Children.Count == 0)
             return;
-        PreviewRenderer previewRenderer = (PreviewRenderer)RenderPanel.Children[0];
+        var previewRenderer = (PreviewRenderer)RenderPanel.Children[0];
         previewRenderer?.Focus();
 
         var pt = e.GetCurrentPoint(RenderPanel);
