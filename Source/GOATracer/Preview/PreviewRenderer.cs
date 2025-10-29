@@ -309,7 +309,6 @@ public class PreviewRenderer : OpenGlControlBase
     public void ApplyMouseLook(float mouseX, float mouseY)
     {
         // check if camera is initialized
-        if (_camera is null) return;
         const float sensitivity = 0.4f;
 
         // current mouse position
