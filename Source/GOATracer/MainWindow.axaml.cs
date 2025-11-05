@@ -115,9 +115,13 @@ public partial class MainWindow : Window
 
     private void DoLightsUpdate()
     {
-        // Collect the lights specified by the user
-        var lights = _sceneLightList.Select(sceneLight => sceneLight.LightData).ToList();
-        _previewRenderer.UpdateLights(lights);
+        // Check if a scene is even loaded
+        if (_sceneDescription != null)
+        {
+            // Collect the lights specified by the user
+            var lights = _sceneLightList.Select(sceneLight => sceneLight.LightData).ToList();
+            _previewRenderer.UpdateLights(lights);
+        }
     }
 
     /// <summary>
