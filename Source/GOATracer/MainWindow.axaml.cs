@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using Avalonia.Controls;
 using Avalonia.Input;
@@ -16,7 +18,15 @@ namespace GOATracer;
 /// </summary>
 public partial class MainWindow : Window
 {
-    private bool _mouseLookActive = false;
+    private bool _mouseLookActive;
+    /// <summary>
+    /// List to manage all the added lights to a scene
+    /// </summary>
+    private List<LightControl> _sceneLightList;
+    /// <summary>
+    /// Counter variable for giving each new light an ID, only goes up
+    /// </summary>
+    private int _nextLightId;
     
     /// <summary>
     /// Constructor
@@ -24,6 +34,11 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        _mouseLookActive = false;
+        // Initialize the list for the lights of the scene
+        _sceneLightList = new List<LightControl>();
+        // Start the counter for the next light ID at 1
+        _nextLightId = 1;
     }
 
     /// <summary>
@@ -268,8 +283,37 @@ public partial class MainWindow : Window
         previewRenderer.ApplyMouseLook((float)pos.X, (float)pos.Y);
     }
 
-    private void AddLightButtonClicked(object? sender, RoutedEventArgs e)
+    /// <summary>
+    /// Event handler for adding a new light control to the UI
+    /// </summary>
+    /// <param name="sender">"Add a light"-Button</param>
+    /// <param name="eventData">Event data</param>
+    private void AddLightButtonClicked(object? sender, RoutedEventArgs eventData)
     {
-        // TODO
+        // Create a callback for the delete event of a light control
+        var deleteCallback = RemoveALight;
+        // Create a new light control with an ID and the callback what method to call for deletion
+        var newLight = new LightControl(_nextLightId, deleteCallback);
+        // Add the light control class to the managing list
+        _sceneLightList.Add(newLight);
+        // Get the StackPanel to add the control to and add it
+        var container = this.FindControl<StackPanel>("SceneLightList");
+        container?.Children.Add(newLight.Control);
+        // Increment the ID for the next light (this only goes up)
+        _nextLightId++;
+    }
+
+    /// <summary>
+    /// Event handler for when a light control gets removed from the UI, is called per Callback
+    /// </summary>
+    /// <param name="lightId">ID of the light to remove</param>
+    private void RemoveALight(int lightId)
+    {
+        // Find the specified light ID in the list and unlink it
+        var lightToRemove = _sceneLightList.FirstOrDefault(light => light.Id == lightId);
+        if (lightToRemove != null)
+        {
+            _sceneLightList.Remove(lightToRemove);
+        }
     }
 }
