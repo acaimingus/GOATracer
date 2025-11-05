@@ -267,4 +267,9 @@ public partial class MainWindow : Window
         var previewRenderer = (PreviewRenderer)RenderPanel.Children[0];
         previewRenderer.ApplyMouseLook((float)pos.X, (float)pos.Y);
     }
+
+    private void AddLightButtonClicked(object? sender, RoutedEventArgs e)
+    {
+        // TODO
+    }
 }
