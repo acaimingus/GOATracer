@@ -122,7 +122,6 @@ public partial class MainWindow : Window
             var vertex = importedSceneDescription.VertexPoints[i];
             logBuilder.AppendLine($"v[{i}]: ({vertex.X}, {vertex.Y}, {vertex.Z})");
         }
-
         logBuilder.AppendLine();
 
         // Log normal data
@@ -222,7 +221,7 @@ public partial class MainWindow : Window
     private void ExitOptionClicked(object? sender, RoutedEventArgs e)
     {
         // Close the app
-        this.Close();
+        Close();
     }
 
     private void RenderButtonClicked(object? sender, RoutedEventArgs e)
@@ -274,13 +273,21 @@ public partial class MainWindow : Window
         }
     }
 
-    private void RenderPanel_PointerMoved(object? sender, PointerEventArgs e)
+    /// <summary>
+    /// Event handler for mouse movements
+    /// </summary>
+    /// <param name="sender">Mouse movement</param>
+    /// <param name="eventData">Event data</param>
+    private void RenderPanel_PointerMoved(object? sender, PointerEventArgs eventData)
     {
+        // If mouse look is not active or there is 
         if (!_mouseLookActive || RenderPanel.Children.Count == 0) return;
 
-        var pos = e.GetPosition(RenderPanel);
+        // Get the position of the mouse
+        var pos = eventData.GetPosition(RenderPanel);
 
         var previewRenderer = (PreviewRenderer)RenderPanel.Children[0];
+        // Use the mouselook
         previewRenderer.ApplyMouseLook((float)pos.X, (float)pos.Y);
     }
 

@@ -1,12 +1,14 @@
 namespace GOATracer.Light;
 
+/// <summary>
+/// Class storing the data of the light entities.
+/// </summary>
 public class Light
 {
     /// <summary>
     /// ID of this light control
     /// </summary>
     public int Id { get; private set; }
-
     /// <summary>
     /// X position of the light
     /// </summary>

@@ -7,6 +7,9 @@ using static System.Single;
 
 namespace GOATracer.Light;
 
+/// <summary>
+/// Controller class handling the construction and bindings of each light control.
+/// </summary>
 public class LightControl
 {
     /// <summary>
