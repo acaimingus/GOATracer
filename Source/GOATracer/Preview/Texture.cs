@@ -1,7 +1,18 @@
 ﻿using System.IO;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.ES30;
+using OpenTK.Graphics.OpenGL;
 using StbImageSharp;
-using PixelFormat = OpenTK.Graphics.OpenGL4.PixelFormat;
+using GL = OpenTK.Graphics.ES30.GL;
+using PixelFormat = OpenTK.Graphics.ES30.PixelFormat;
+using PixelInternalFormat = OpenTK.Graphics.ES30.PixelInternalFormat;
+using PixelType = OpenTK.Graphics.ES30.PixelType;
+using TextureMagFilter = OpenTK.Graphics.ES30.TextureMagFilter;
+using TextureMinFilter = OpenTK.Graphics.ES30.TextureMinFilter;
+using TextureParameterName = OpenTK.Graphics.ES30.TextureParameterName;
+using TextureTarget = OpenTK.Graphics.ES30.TextureTarget;
+using TextureTarget2d = OpenTK.Graphics.ES30.TextureTarget2d;
+using TextureUnit = OpenTK.Graphics.ES30.TextureUnit;
+using TextureWrapMode = OpenTK.Graphics.ES30.TextureWrapMode;
 
 namespace GOATracer.Preview
 {
@@ -43,7 +54,7 @@ namespace GOATracer.Preview
                 //   The format of the pixels, explained above. Since we loaded the pixels as RGBA earlier, we need to use PixelFormat.Rgba.
                 //   Data type of the pixels.
                 //   And finally, the actual pixels.
-                GL.TexImage2D(TextureTarget.Texture2D, 0, PixelInternalFormat.Rgba, image.Width, image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
+                GL.TexImage2D((TextureTarget2d)TextureTarget.Texture2D, 0, (TextureComponentCount)PixelInternalFormat.Rgba, image.Width, image.Height, 0, PixelFormat.Rgba, PixelType.UnsignedByte, image.Data);
             }
             
             // Now that our texture is loaded, we can set a few settings to affect how the image appears on rendering.
@@ -68,7 +79,7 @@ namespace GOATracer.Preview
             // This prevents moiré effects, as well as saving on texture bandwidth.
             // Here you can see and read about the morié effect https://en.wikipedia.org/wiki/Moir%C3%A9_pattern
             // Here is an example of mips in action https://en.wikipedia.org/wiki/File:Mipmap_Aliasing_Comparison.png
-            GL.GenerateMipmap(GenerateMipmapTarget.Texture2D);
+            GL.GenerateMipmap((TextureTarget)GenerateMipmapTarget.Texture2D);
 
             return new Texture(handle);
         }

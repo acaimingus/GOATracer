@@ -3,7 +3,7 @@ using Avalonia.Input;
 using Avalonia.OpenGL;
 using Avalonia.OpenGL.Controls;
 using GOATracer.Importer.Obj;
-using OpenTK.Graphics.OpenGL4;
+using OpenTK.Graphics.ES30;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
