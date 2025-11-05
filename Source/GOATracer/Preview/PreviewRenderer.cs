@@ -7,6 +7,7 @@ using OpenTK.Graphics.ES30;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using GOATracer.Lights;
 
 namespace GOATracer.Preview;
@@ -15,18 +16,30 @@ public class PreviewRenderer : OpenGlControlBase
 {
     private readonly float[] _vertices;
     private readonly int _vertexCountToDraw;
-    private readonly Vector3 _lightPos;
+    private readonly List<Vector3> _lights;
     private int _vertexBufferObject;
+    private readonly float[] _lampVertices =
+    {
+        -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f,  0.5f, -0.5f, 0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
+        -0.5f, -0.5f,  0.5f, 0.5f, -0.5f,  0.5f, 0.5f,  0.5f,  0.5f, 0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f, -0.5f,  0.5f,
+        -0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,  0.5f,
+        0.5f,  0.5f,  0.5f, 0.5f,  0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f,  0.5f, 0.5f,  0.5f,  0.5f,
+        -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f,  0.5f, 0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f,
+        -0.5f,  0.5f, -0.5f, 0.5f,  0.5f, -0.5f, 0.5f,  0.5f,  0.5f, 0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f
+    };
+    private int _lampBufferObject;
     private int _vaoModel;
     private int _vaoLamp;
-    private Shader _lampShader = null!;
-    private Shader _lightingShader = null!;
-    private Camera _camera = null!;
-    private bool _firstMove = true;
+    private Shader _lampShader;
+    private Shader _lightingShader;
+    private Camera _camera;
+    private bool _firstMove;
     private Vector2 _lastPos;
     private bool _glLoaded;
-    private float _cameraSpeed = 0.5f;
+    private float _cameraSpeed;
 
+    private const int MaxLights = 128;
+    
     private readonly HashSet<Key> _keys = [];
 
     /// <summary>
@@ -44,19 +57,25 @@ public class PreviewRenderer : OpenGlControlBase
     /// </summary>
     public PreviewRenderer(ImportedSceneDescription sceneDescription, List<Light> lights)
     {
-        // Check if there are any lights present
+        // Initalize default values for some fields
+        _lights = new List<Vector3>();
+        _firstMove = true;
+        _cameraSpeed = 0.5f;
+
         if (lights.Count > 0)
         {
-            // Create a light from the given list (take the first one for now)
-            _lightPos = new Vector3(lights[0].X, lights[0].Y, lights[0].Z);
-
+            // Convert each light from the light object list to a 3d point and save it in the local light list
+            foreach (var vector in lights.Select(light => new Vector3(light.X, light.Y, light.Z)))
+            {
+                _lights.Add(vector);
+            }
         }
         else
         {
-            // There were no lights specified, put one at the origin
-            _lightPos = new Vector3(0, 0, 0);
+            // Create a default light at 0/0/0
+            _lights.Add(new Vector3(0, 0, 0));
         }
-        
+
         // Make sure we can get keyboard focus
         this.Focusable = true;
 
@@ -137,6 +156,11 @@ public class PreviewRenderer : OpenGlControlBase
         GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices,
             BufferUsageHint.StaticDraw);
 
+        // Create a SEPARATE VBO for the lamp objects
+        _lampBufferObject = GL.GenBuffer();
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _lampBufferObject);
+        GL.BufferData(BufferTarget.ArrayBuffer, _lampVertices.Length * sizeof(float), _lampVertices, BufferUsageHint.StaticDraw);
+        
         // Shaders are tiny programs that live on the GPU. OpenGL uses them to handle the vertex-to-pixel pipeline.
         _lightingShader = new Shader("Shaders/shader.vert", "Shaders/lighting.frag");
         _lampShader = new Shader("Shaders/shader.vert", "Shaders/shader.frag");
@@ -146,6 +170,7 @@ public class PreviewRenderer : OpenGlControlBase
             // stores state of vertex attribute configurations (how data is laid out etc.)
             _vaoModel = GL.GenVertexArray();
             GL.BindVertexArray(_vaoModel);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
 
             // Shader attributes linked to VBO data (VAO stores the mapping)
             var positionLocation = _lightingShader.GetAttribLocation("aPos");
@@ -161,10 +186,11 @@ public class PreviewRenderer : OpenGlControlBase
         {
             _vaoLamp = GL.GenVertexArray();
             GL.BindVertexArray(_vaoLamp);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _lampBufferObject);
 
             var positionLocation = _lampShader.GetAttribLocation("aPos");
             GL.EnableVertexAttribArray(positionLocation);
-            GL.VertexAttribPointer(positionLocation, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
+            GL.VertexAttribPointer(positionLocation, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
         }
 
         // set camera on position (0,0,3) and aspect ratio according to the control size
@@ -202,39 +228,43 @@ public class PreviewRenderer : OpenGlControlBase
         _lightingShader.SetVector3("material.diffuse", new Vector3(1.0f, 0.5f, 0.31f));
         _lightingShader.SetVector3("material.specular", new Vector3(0.5f, 0.5f, 0.5f));
         _lightingShader.SetFloat("material.shininess", 32.0f);
-
-        // This is where we change the lights color over time using the sin function
-        Vector3 lightColor;
+        
+        var activeLightCount = Math.Min(_lights.Count, MaxLights);
+        _lightingShader.SetInt("activeLightCount", activeLightCount);
         var time = DateTime.Now.Second + DateTime.Now.Millisecond / 1000f;
-        lightColor.X = (MathF.Sin(time * 2.0f) + 1) / 2f;
-        lightColor.Y = (MathF.Sin(time * 0.7f) + 1) / 2f;
-        lightColor.Z = (MathF.Sin(time * 1.3f) + 1) / 2f;
 
-        // The ambient light is less intensive than the diffuse light in order to make it less dominant
-        var ambientColor = lightColor * new Vector3(0.2f);
-        var diffuseColor = lightColor * new Vector3(0.5f);
-
-        _lightingShader.SetVector3("light.position", _lightPos);
-        _lightingShader.SetVector3("light.ambient", ambientColor);
-        _lightingShader.SetVector3("light.diffuse", diffuseColor);
-        _lightingShader.SetVector3("light.specular", new Vector3(1.0f, 1.0f, 1.0f));
+        for (var i = 0; i < activeLightCount; i++)
+        {
+            Vector3 lightColor;
+            lightColor.X = (MathF.Sin((time + i * 0.5f) * 2.0f) + 1) / 2f;
+            lightColor.Y = (MathF.Sin((time + i * 0.5f) * 0.7f) + 1) / 2f;
+            lightColor.Z = (MathF.Sin((time + i * 0.5f) * 1.3f) + 1) / 2f;
+            
+            var ambientColor = lightColor * new Vector3(0.2f);
+            var diffuseColor = lightColor * new Vector3(0.5f);
+            
+            _lightingShader.SetVector3($"lights[{i}].position", _lights[i]);
+            _lightingShader.SetVector3($"lights[{i}].ambient", ambientColor);
+            _lightingShader.SetVector3($"lights[{i}].diffuse", diffuseColor);
+            _lightingShader.SetVector3($"lights[{i}].specular", new Vector3(1.0f, 1.0f, 1.0f));
+        }
 
         // call to draw the vertices
         GL.DrawArrays(PrimitiveType.Triangles, 0, _vertexCountToDraw);
-
         GL.BindVertexArray(_vaoLamp);
-
-        _lampShader.Use();
-
-        var lampMatrix = Matrix4.Identity;
-        lampMatrix *= Matrix4.CreateScale(0.2f);
-        lampMatrix *= Matrix4.CreateTranslation(_lightPos);
-
-        _lampShader.SetMatrix4("model", lampMatrix);
+        
         _lampShader.SetMatrix4("view", _camera.GetViewMatrix());
         _lampShader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+        _lampShader.Use();
 
-        GL.DrawArrays(PrimitiveType.Triangles, 0, 36);
+        foreach (var light in _lights.GetRange(0, activeLightCount))
+        {
+            var lampMatrix = Matrix4.Identity;
+            lampMatrix *= Matrix4.CreateScale(0.2f);
+            lampMatrix *= Matrix4.CreateTranslation(light);
+            _lampShader.SetMatrix4("model", lampMatrix);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, _lampVertices.Length / 3);
+        }
         
         RequestNextFrameRendering();
     }
