@@ -32,6 +32,8 @@ public partial class MainWindow : Window
     /// Variable storing the imported scene description, only set if an import was made, else null
     /// </summary>
     private ImportedSceneDescription? _sceneDescription;
+
+    private PreviewRenderer _previewRenderer;
     
     /// <summary>
     /// Constructor
@@ -97,24 +99,25 @@ public partial class MainWindow : Window
 
             // Output detailed information about the imported 3D model for debugging
             PrintDebugInfo();
-            // Update the scene
-            DoSceneUpdate();
+
+            // Check if a scene was imported
+            if (_sceneDescription != null)
+            {
+                // Collect the lights specified by the user
+                var lights = _sceneLightList.Select(sceneLight => sceneLight.LightData).ToList();
+                _previewRenderer = new PreviewRenderer(_sceneDescription, lights);
+                // Kill previous renderer if present (GC cleanup) and create a new renderer
+                RenderPanel.Children.Clear();
+                RenderPanel.Children.Add(_previewRenderer);
+            }
         }
     }
 
-    private void DoSceneUpdate()
+    private void DoLightsUpdate()
     {
-        // Check if a scene was imported
-        if (_sceneDescription != null)
-        {
-            // Collect the lights specified by the user
-            var lights = _sceneLightList.Select(sceneLight => sceneLight.LightData).ToList();
-            // Load the preview for the imported object
-            var previewRenderer = new PreviewRenderer(_sceneDescription, lights);
-            // Kill previous renderer if present (GC cleanup) and create a new renderer
-            RenderPanel.Children.Clear();
-            RenderPanel.Children.Add(previewRenderer);
-        }
+        // Collect the lights specified by the user
+        var lights = _sceneLightList.Select(sceneLight => sceneLight.LightData).ToList();
+        _previewRenderer.UpdateLights(lights);
     }
 
     /// <summary>
@@ -331,8 +334,9 @@ public partial class MainWindow : Window
     {
         // Create a callback for the delete event of a light control
         var deleteCallback = RemoveALight;
+        var editCallback = DoLightsUpdate;
         // Create a new light control with an ID and the callback what method to call for deletion
-        var newLight = new LightControl(_nextLightId, deleteCallback);
+        var newLight = new LightControl(_nextLightId, deleteCallback, editCallback);
         // Add the light control class to the managing list
         _sceneLightList.Add(newLight);
         // Get the StackPanel to add the control to and add it

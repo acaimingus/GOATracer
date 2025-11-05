@@ -25,6 +25,8 @@ public class LightControl
     /// Callback for a method to call when the Control gets deleted
     /// </summary>
     private readonly Action<int> _deleteCallback;
+
+    private readonly Action _editCallback;
     
     private TextBox _lightX;
     private TextBox _lightY;
@@ -35,11 +37,13 @@ public class LightControl
     /// </summary>
     /// <param name="lightId">ID of the light control</param>
     /// <param name="deleteCallback">Callback for deletion</param>
-    public LightControl(int lightId, Action<int> deleteCallback)
+    /// <param name="editCallback">Callback for edits to the textboxes</param>
+    public LightControl(int lightId, Action<int> deleteCallback, Action editCallback)
     {
         LightData = new Light(lightId);
         Control = GenerateLightControls(lightId);
         _deleteCallback = deleteCallback;
+        _editCallback = editCallback;
     }
 
     /// <summary>
@@ -130,7 +134,7 @@ public class LightControl
         };
 
         // Add an event handler for the deletion of the control
-        deleteButton.Click += (_, __) =>
+        deleteButton.Click += (_, _) =>
         {
             // Tell the parent StackPanel of this control to remove this control from itself
             var parent = this.Control.FindLogicalAncestorOfType<StackPanel>();
@@ -150,6 +154,7 @@ public class LightControl
             if (TryParse(_lightX.Text, out var lightDataX))
             {
                 LightData.X = lightDataX;
+                _editCallback();
             }
 
         };
@@ -160,6 +165,7 @@ public class LightControl
             if (TryParse(_lightY.Text, out var lightDataY))
             {
                 LightData.Y = lightDataY;
+                _editCallback();
             }
         };
         // Z Binding
@@ -169,6 +175,7 @@ public class LightControl
             if (TryParse(_lightZ.Text, out var lightDataZ))
             {
                 LightData.Z = lightDataZ;
+                _editCallback();
             }
         };
 

@@ -16,7 +16,7 @@ public class PreviewRenderer : OpenGlControlBase
 {
     private readonly float[] _vertices;
     private readonly int _vertexCountToDraw;
-    private readonly List<Vector3> _lights;
+    private List<Vector3> _lights;
     private int _vertexBufferObject;
     private readonly float[] _lampVertices =
     {
@@ -57,24 +57,10 @@ public class PreviewRenderer : OpenGlControlBase
     /// </summary>
     public PreviewRenderer(ImportedSceneDescription sceneDescription, List<Light> lights)
     {
-        // Initalize default values for some fields
-        _lights = new List<Vector3>();
         _firstMove = true;
         _cameraSpeed = 0.5f;
-
-        if (lights.Count > 0)
-        {
-            // Convert each light from the light object list to a 3d point and save it in the local light list
-            foreach (var vector in lights.Select(light => new Vector3(light.X, light.Y, light.Z)))
-            {
-                _lights.Add(vector);
-            }
-        }
-        else
-        {
-            // Create a default light at 0/0/0
-            _lights.Add(new Vector3(0, 0, 0));
-        }
+        
+        UpdateLights(lights);
 
         // Make sure we can get keyboard focus
         this.Focusable = true;
@@ -132,6 +118,20 @@ public class PreviewRenderer : OpenGlControlBase
         // Calculate the amount of vertices to draw
         // Because every vertex has 6 floats (position and normal), the _vertexCountToDraw gets divided by 6
         _vertexCountToDraw = _vertices.Length / 6;
+    }
+
+    public void UpdateLights(List<Light> lights)
+    {
+        _lights = new List<Vector3>();
+
+        if (lights.Count > 0)
+        {
+            // Convert each light from the light object list to a 3d point and save it in the local light list
+            foreach (var vector in lights.Select(light => new Vector3(light.X, light.Y, light.Z)))
+            {
+                _lights.Add(vector);
+            }
+        }
     }
 
     protected override void OnOpenGlInit(GlInterface gl)
