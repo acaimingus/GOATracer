@@ -7,6 +7,7 @@ using OpenTK.Graphics.OpenGL4;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
+using GOATracer.Lights;
 
 namespace GOATracer.Preview;
 
@@ -14,7 +15,7 @@ public class PreviewRenderer : OpenGlControlBase
 {
     private readonly float[] _vertices;
     private readonly int _vertexCountToDraw;
-    private readonly Vector3 _lightPos = new(1.2f, 1.0f, 2.0f);
+    private readonly Vector3 _lightPos;
     private int _vertexBufferObject;
     private int _vaoModel;
     private int _vaoLamp;
@@ -41,8 +42,21 @@ public class PreviewRenderer : OpenGlControlBase
     /// <summary>
     /// Constructor
     /// </summary>
-    public PreviewRenderer(ImportedSceneDescription sceneDescription)
+    public PreviewRenderer(ImportedSceneDescription sceneDescription, List<Light> lights)
     {
+        // Check if there are any lights present
+        if (lights.Count > 0)
+        {
+            // Create a light from the given list (take the first one for now)
+            _lightPos = new Vector3(lights[0].X, lights[0].Y, lights[0].Z);
+
+        }
+        else
+        {
+            // There were no lights specified, put one at the origin
+            _lightPos = new Vector3(0, 0, 0);
+        }
+        
         // Make sure we can get keyboard focus
         this.Focusable = true;
 

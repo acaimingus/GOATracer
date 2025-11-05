@@ -1,4 +1,4 @@
-namespace GOATracer.Light;
+namespace GOATracer.Lights;
 
 /// <summary>
 /// Class storing the data of the light entities.
