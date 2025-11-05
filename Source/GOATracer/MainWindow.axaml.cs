@@ -9,6 +9,7 @@ using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using GOATracer.Importer.Obj;
 using GOATracer.Preview;
+using GOATracer.Light;
 using Window = Avalonia.Controls.Window;
 
 namespace GOATracer;
@@ -310,7 +311,7 @@ public partial class MainWindow : Window
     private void RemoveALight(int lightId)
     {
         // Find the specified light ID in the list and unlink it
-        var lightToRemove = _sceneLightList.FirstOrDefault(light => light.Id == lightId);
+        var lightToRemove = _sceneLightList.FirstOrDefault(light => light.LightData.Id == lightId);
         if (lightToRemove != null)
         {
             _sceneLightList.Remove(lightToRemove);

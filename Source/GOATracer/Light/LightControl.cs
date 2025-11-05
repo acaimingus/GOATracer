@@ -3,15 +3,17 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.LogicalTree;
+using static System.Single;
 
-namespace GOATracer;
+namespace GOATracer.Light;
 
 public class LightControl
 {
     /// <summary>
-    /// ID of this light control
+    /// Light data
     /// </summary>
-    public int Id { get; private set; }
+    public Light LightData { get; private set; }
+    
     /// <summary>
     /// The UI control element itself
     /// </summary>
@@ -19,7 +21,11 @@ public class LightControl
     /// <summary>
     /// Callback for a method to call when the Control gets deleted
     /// </summary>
-    private Action<int> _deleteCallback;
+    private readonly Action<int> _deleteCallback;
+    
+    private TextBox _lightX;
+    private TextBox _lightY;
+    private TextBox _lightZ;
 
     /// <summary>
     /// Constructor
@@ -28,7 +34,7 @@ public class LightControl
     /// <param name="deleteCallback">Callback for deletion</param>
     public LightControl(int lightId, Action<int> deleteCallback)
     {
-        Id = lightId;
+        LightData = new Light(lightId);
         Control = GenerateLightControls(lightId);
         _deleteCallback = deleteCallback;
     }
@@ -61,15 +67,15 @@ public class LightControl
         grid.Children.Add(labelX);
 
         // <TextBox Grid.Row="1" Grid.Column="0" x:Name="LightX1" ... />
-        var lightX = new TextBox
+        _lightX = new TextBox
         {
             Name = "LightX" + lightId,
             VerticalContentAlignment = VerticalAlignment.Center,
             Text = "0"
         };
-        Grid.SetRow(lightX, 1);
-        Grid.SetColumn(lightX, 0);
-        grid.Children.Add(lightX);
+        Grid.SetRow(_lightX, 1);
+        Grid.SetColumn(_lightX, 0);
+        grid.Children.Add(_lightX);
 
         // --- Light Y ---
         // <Label Grid.Row="0" Grid.Column="1" Content="Light 1 Y" ... />
@@ -83,15 +89,15 @@ public class LightControl
         grid.Children.Add(labelY);
 
         // <TextBox Grid.Row="1" Grid.Column="1" x:Name="LightY1" ... />
-        var lightY = new TextBox
+        _lightY = new TextBox
         {
             Name = "LightY" + lightId,
             VerticalContentAlignment = VerticalAlignment.Center,
             Text = "0"
         };
-        Grid.SetRow(lightY, 1);
-        Grid.SetColumn(lightY, 1);
-        grid.Children.Add(lightY);
+        Grid.SetRow(_lightY, 1);
+        Grid.SetColumn(_lightY, 1);
+        grid.Children.Add(_lightY);
         
         // <Label Grid.Row="0" Grid.Column="2" Content="Light 1 Z" ... />
         var labelZ = new Label
@@ -104,15 +110,15 @@ public class LightControl
         grid.Children.Add(labelZ);
 
         // <TextBox Grid.Row="1" Grid.Column="2" x:Name="LightZ1" ... />
-        var lightZ = new TextBox
+        _lightZ = new TextBox
         {
             Name = "LightZ" +  lightId,
             VerticalContentAlignment = VerticalAlignment.Center,
             Text = "0"
         };
-        Grid.SetRow(lightZ, 1);
-        Grid.SetColumn(lightZ, 2);
-        grid.Children.Add(lightZ);
+        Grid.SetRow(_lightZ, 1);
+        Grid.SetColumn(_lightZ, 2);
+        grid.Children.Add(_lightZ);
         
         // <Button Grid.Row="1" Grid.Column="3" Content="X"/>
         var deleteButton = new Button
@@ -132,6 +138,36 @@ public class LightControl
         Grid.SetRow(deleteButton, 1);
         Grid.SetColumn(deleteButton, 3);
         grid.Children.Add(deleteButton);
+        
+        // Create bindings for text changes in the text fields
+        // X Binding
+        _lightX.TextChanged += (_, _) =>
+        {
+            // Check if the input was valid and parse it with the light data if valid
+            if (TryParse(_lightX.Text, out var lightDataX))
+            {
+                LightData.X = lightDataX;
+            }
+
+        };
+        // Y Binding
+        _lightY.TextChanged += (_, _) =>
+        {
+            // Check if the input was valid and parse it with the light data if valid
+            if (TryParse(_lightY.Text, out var lightDataY))
+            {
+                LightData.Y = lightDataY;
+            }
+        };
+        // Z Binding
+        _lightZ.TextChanged += (_, _) =>
+        {
+            // Check if the input was valid and parse it with the light data if valid
+            if (TryParse(_lightZ.Text, out var lightDataZ))
+            {
+                LightData.Z = lightDataZ;
+            }
+        };
 
         return grid;
     }
