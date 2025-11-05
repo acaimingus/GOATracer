@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Layout;
@@ -151,7 +152,7 @@ public class LightControl
         _lightX.TextChanged += (_, _) =>
         {
             // Check if the input was valid and parse it with the light data if valid
-            if (TryParse(_lightX.Text, out var lightDataX))
+            if (TryParse(_lightX.Text.Replace(',','.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var lightDataX))
             {
                 LightData.X = lightDataX;
                 _editCallback();
@@ -162,7 +163,7 @@ public class LightControl
         _lightY.TextChanged += (_, _) =>
         {
             // Check if the input was valid and parse it with the light data if valid
-            if (TryParse(_lightY.Text, out var lightDataY))
+            if (TryParse(_lightY.Text.Replace(',','.'),NumberStyles.Float, CultureInfo.InvariantCulture, out var lightDataY))
             {
                 LightData.Y = lightDataY;
                 _editCallback();
@@ -172,7 +173,7 @@ public class LightControl
         _lightZ.TextChanged += (_, _) =>
         {
             // Check if the input was valid and parse it with the light data if valid
-            if (TryParse(_lightZ.Text, out var lightDataZ))
+            if (TryParse(_lightZ.Text.Replace(',','.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var lightDataZ))
             {
                 LightData.Z = lightDataZ;
                 _editCallback();
