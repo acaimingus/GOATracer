@@ -5,8 +5,9 @@ using Avalonia.Controls;
 using Avalonia.Layout;
 using Avalonia.LogicalTree;
 using static System.Single;
+using GOATracer.Lights;
 
-namespace GOATracer.Lights;
+namespace GOATracer.MVC;
 
 /// <summary>
 /// Controller class handling the construction and bindings of each light control.

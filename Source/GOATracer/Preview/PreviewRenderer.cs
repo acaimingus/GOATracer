@@ -9,6 +9,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using GOATracer.Lights;
+using GOATracer.Cameras;
+using GOATracer.MVC;
 
 namespace GOATracer.Preview;
 
@@ -33,6 +35,7 @@ public class PreviewRenderer : OpenGlControlBase
     private Shader _lampShader;
     private Shader _lightingShader;
     private Camera _camera;
+    private readonly CameraSettingsBinding _cameraSettings;
     private bool _firstMove;
     private Vector2 _lastPos;
     private bool _glLoaded;
@@ -55,13 +58,16 @@ public class PreviewRenderer : OpenGlControlBase
     /// <summary>
     /// Constructor
     /// </summary>
-    public PreviewRenderer(ImportedSceneDescription sceneDescription, List<Light> lights)
+    public PreviewRenderer(ImportedSceneDescription sceneDescription, List<Light> lights, CameraSettingsBinding cameraSettings)
     {
         _firstMove = true;
         _cameraSpeed = 0.5f;
         
         UpdateLights(lights);
 
+        _cameraSettings = cameraSettings;
+        _cameraSettings.UiCameraUpdate += OnCameraSettingsChangedFromUi;
+        
         // Make sure we can get keyboard focus
         this.Focusable = true;
 
@@ -134,10 +140,17 @@ public class PreviewRenderer : OpenGlControlBase
         }
     }
 
+    private void OnCameraSettingsChangedFromUi()
+    {
+        _camera.Position = new Vector3(_cameraSettings.PositionX, _cameraSettings.PositionY, _cameraSettings.PositionZ);
+        _camera.Pitch = _cameraSettings.RotationX;
+        _camera.Yaw = _cameraSettings.RotationY;
+    }
+    
     protected override void OnOpenGlInit(GlInterface gl)
     {
         base.OnOpenGlInit(gl);
-
+        
         // Allows OpenTK to load OpenGL functions using Avalonia's GL context
         GL.LoadBindings(new AvaloniaBindingsContext(gl));
         _glLoaded = true;
@@ -195,6 +208,9 @@ public class PreviewRenderer : OpenGlControlBase
 
         // set camera on position (0,0,3) and aspect ratio according to the control size
         _camera = new Camera(Vector3.UnitZ * 3, (float)(Bounds.Width / Bounds.Height));
+        
+        _cameraSettings.UpdatePosition(_camera.Position.X, _camera.Position.Y, _camera.Position.Z);
+        _cameraSettings.UpdateRotation(_camera.Pitch, _camera.Yaw, 0f);
     }
 
     protected override void OnOpenGlRender(GlInterface gl, int fb)

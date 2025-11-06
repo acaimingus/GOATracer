@@ -4,6 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d" d:DesignWidth="1280" d:DesignHeight="720"
         x:Class="GOATracer.MainWindow"
+        xmlns:mvc="using:GOATracer.MVC"
         Title="GOATracer">
     <DockPanel>
         <!-- Top toolbar -->
@@ -29,34 +30,35 @@
                         <Label x:Name="MaterialCountLabel" Content="Material count:" FontSize="14" />
                     </StackPanel>
                     <!-- Camera dimensions -->
-                    <Grid Margin="5" ColumnDefinitions="*,*,*"
+                    <Grid x:Name="CameraDimensionsGrid" Margin="5" ColumnDefinitions="*,*,*"
+                          x:DataType="mvc:CameraSettingsBinding"
                           RowDefinitions="40,40,40,40,40,40,40,40">
                         <!-- Camera dimensions title -->
                         <Label Grid.ColumnSpan="3" Content="Camera settings" FontSize="24" VerticalAlignment="Center" />
                         <!-- X position -->
                         <Label Grid.Row="1" Grid.Column="0" Content="Position X" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="2" Grid.Column="0" x:Name="XPositionTextBox"
-                                 VerticalContentAlignment="Center" Text="0" />
+                        <TextBox Grid.Row="2" Grid.Column="0" VerticalContentAlignment="Center"
+                                 Text="{Binding PositionX, Mode=TwoWay, FallbackValue=0}" />
                         <!-- Y position -->
                         <Label Grid.Row="1" Grid.Column="1" Content="Position Y" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="2" Grid.Column="1" x:Name="YPositionTextBox"
-                                 VerticalContentAlignment="Center" Text="0" />
+                        <TextBox Grid.Row="2" Grid.Column="1" VerticalContentAlignment="Center"
+                                 Text="{Binding PositionY, Mode=TwoWay, FallbackValue=0}" />
                         <!-- Z position -->
                         <Label Grid.Row="1" Grid.Column="2" Content="Position Z" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="2" Grid.Column="2" x:Name="ZPositionTextBox"
-                                 VerticalContentAlignment="Center" Text="0" />
+                        <TextBox Grid.Row="2" Grid.Column="2" VerticalContentAlignment="Center"
+                                 Text="{Binding PositionZ, Mode=TwoWay, FallbackValue=0}" />
                         <!-- X rotation -->
                         <Label Grid.Row="3" Grid.Column="0" Content="Rotation X" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="4" Grid.Column="0" x:Name="XRotationTextBox"
-                                 VerticalContentAlignment="Center" Text="0" />
+                        <TextBox Grid.Row="4" Grid.Column="0" VerticalContentAlignment="Center"
+                                 Text="{Binding RotationX, Mode=TwoWay, FallbackValue=0}" />
                         <!-- Y rotation -->
                         <Label Grid.Row="3" Grid.Column="1" Content="Rotation Y" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="4" Grid.Column="1" x:Name="YRotationTextBox"
-                                 VerticalContentAlignment="Center" Text="0" />
+                        <TextBox Grid.Row="4" Grid.Column="1" VerticalContentAlignment="Center"
+                                 Text="{Binding RotationY, Mode=TwoWay, FallbackValue=0}" />
                         <!-- Z rotation -->
                         <Label Grid.Row="3" Grid.Column="2" Content="Rotation Z" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="4" Grid.Column="2" x:Name="ZRotationTextBox"
-                                 VerticalContentAlignment="Center" Text="0" />
+                        <TextBox Grid.Row="4" Grid.Column="2" VerticalContentAlignment="Center" 
+                                 Text="{Binding RotationZ, Mode=TwoWay, FallbackValue=0}" />
                         <!-- Camera dimensions title -->
                         <Label Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" Content="Export settings" FontSize="24"
                                VerticalAlignment="Center" />

@@ -7,9 +7,9 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
+using GOATracer.MVC;
 using GOATracer.Importer.Obj;
 using GOATracer.Preview;
-using GOATracer.Lights;
 using Window = Avalonia.Controls.Window;
 
 namespace GOATracer;
@@ -34,6 +34,8 @@ public partial class MainWindow : Window
     private ImportedSceneDescription? _sceneDescription;
 
     private PreviewRenderer _previewRenderer;
+
+    private readonly CameraSettingsBinding _cameraSettings;
     
     /// <summary>
     /// Constructor
@@ -46,6 +48,15 @@ public partial class MainWindow : Window
         _sceneLightList = new List<LightControl>();
         // Start the counter for the next light ID at 1
         _nextLightId = 1;
+        
+        // Create an instance of the binding for the camera settings
+        _cameraSettings = new CameraSettingsBinding();
+        
+        var cameraDimensionsGrid = this.FindControl<Grid>("CameraDimensionsGrid");
+        if (cameraDimensionsGrid != null)
+        {
+            cameraDimensionsGrid.DataContext = _cameraSettings;
+        }
     }
 
     /// <summary>
@@ -105,7 +116,7 @@ public partial class MainWindow : Window
             {
                 // Collect the lights specified by the user
                 var lights = _sceneLightList.Select(sceneLight => sceneLight.LightData).ToList();
-                _previewRenderer = new PreviewRenderer(_sceneDescription, lights);
+                _previewRenderer = new PreviewRenderer(_sceneDescription, lights, _cameraSettings);
                 // Kill previous renderer if present (GC cleanup) and create a new renderer
                 RenderPanel.Children.Clear();
                 RenderPanel.Children.Add(_previewRenderer);
