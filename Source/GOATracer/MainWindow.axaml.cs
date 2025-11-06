@@ -362,5 +362,7 @@ public partial class MainWindow : Window
         {
             _sceneLightList.Remove(lightToRemove);
         }
+        // Update the preview so it reflects the new lights
+        DoLightsUpdate();
     }
 }
