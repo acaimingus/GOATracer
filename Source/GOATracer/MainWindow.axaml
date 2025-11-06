@@ -6,6 +6,9 @@
         x:Class="GOATracer.MainWindow"
         xmlns:mvc="using:GOATracer.MVC"
         Title="GOATracer">
+    <Window.Resources>
+        <mvc:StringToFloatConverter x:Key="StringToFloatConverter" />
+    </Window.Resources>
     <DockPanel>
         <!-- Top toolbar -->
         <Menu DockPanel.Dock="Top">
@@ -38,27 +41,27 @@
                         <!-- X position -->
                         <Label Grid.Row="1" Grid.Column="0" Content="Position X" VerticalAlignment="Center" />
                         <TextBox Grid.Row="2" Grid.Column="0" VerticalContentAlignment="Center"
-                                 Text="{Binding PositionX, Mode=TwoWay, FallbackValue=0}" />
+                                 Text="{Binding PositionX, Mode=TwoWay, FallbackValue=0, Converter={StaticResource StringToFloatConverter}}" />
                         <!-- Y position -->
                         <Label Grid.Row="1" Grid.Column="1" Content="Position Y" VerticalAlignment="Center" />
                         <TextBox Grid.Row="2" Grid.Column="1" VerticalContentAlignment="Center"
-                                 Text="{Binding PositionY, Mode=TwoWay, FallbackValue=0}" />
+                                 Text="{Binding PositionY, Mode=TwoWay, FallbackValue=0, Converter={StaticResource StringToFloatConverter}}" />
                         <!-- Z position -->
                         <Label Grid.Row="1" Grid.Column="2" Content="Position Z" VerticalAlignment="Center" />
                         <TextBox Grid.Row="2" Grid.Column="2" VerticalContentAlignment="Center"
-                                 Text="{Binding PositionZ, Mode=TwoWay, FallbackValue=0}" />
+                                 Text="{Binding PositionZ, Mode=TwoWay, FallbackValue=0, Converter={StaticResource StringToFloatConverter}}" />
                         <!-- X rotation -->
                         <Label Grid.Row="3" Grid.Column="0" Content="Rotation X" VerticalAlignment="Center" />
                         <TextBox Grid.Row="4" Grid.Column="0" VerticalContentAlignment="Center"
-                                 Text="{Binding RotationX, Mode=TwoWay, FallbackValue=0}" />
+                                 Text="{Binding RotationX, Mode=TwoWay, FallbackValue=0, Converter={StaticResource StringToFloatConverter}}" />
                         <!-- Y rotation -->
                         <Label Grid.Row="3" Grid.Column="1" Content="Rotation Y" VerticalAlignment="Center" />
                         <TextBox Grid.Row="4" Grid.Column="1" VerticalContentAlignment="Center"
-                                 Text="{Binding RotationY, Mode=TwoWay, FallbackValue=0}" />
+                                 Text="{Binding RotationY, Mode=TwoWay, FallbackValue=0, Converter={StaticResource StringToFloatConverter}}" />
                         <!-- Z rotation -->
                         <Label Grid.Row="3" Grid.Column="2" Content="Rotation Z" VerticalAlignment="Center" />
                         <TextBox Grid.Row="4" Grid.Column="2" VerticalContentAlignment="Center" 
-                                 Text="{Binding RotationZ, Mode=TwoWay, FallbackValue=0}" />
+                                 Text="{Binding RotationZ, Mode=TwoWay, FallbackValue=0, Converter={StaticResource StringToFloatConverter}}" />
                         <!-- Camera dimensions title -->
                         <Label Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="3" Content="Export settings" FontSize="24"
                                VerticalAlignment="Center" />
