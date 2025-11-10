@@ -26,6 +26,9 @@ uniform vec3 viewPos;
 
 in vec3 Normal;
 in vec3 FragPos;
+in vec2 TexCoord;
+
+uniform sampler2D texture0;
 
 out vec4 FragColor;
 
@@ -40,13 +43,16 @@ void main()
 
     for(int i = 0; i < activeLightCount; i++)
     {
+        // Texture
+        vec3 texColor = texture(texture0, TexCoord).rgb;
+
         // Ambient
         ambient += lights[i].ambient * material.ambient;
 
         // Diffuse
         vec3 lightDir = normalize(lights[i].position - FragPos);
         float diff = max(dot(norm, lightDir), 0.0);
-        diffuse += lights[i].diffuse * (diff * material.diffuse);
+        diffuse += lights[i].diffuse * (diff * texColor);
 
         // Specular
         vec3 reflectDir = reflect(-lightDir, norm);

@@ -2,15 +2,17 @@ using Avalonia;
 using Avalonia.Input;
 using Avalonia.OpenGL;
 using Avalonia.OpenGL.Controls;
+using GOATracer.Cameras;
 using GOATracer.Importer.Obj;
+using GOATracer.Lights;
+using GOATracer.MVC;
 using OpenTK.Graphics.ES30;
 using OpenTK.Mathematics;
+using StbImageSharp;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
-using GOATracer.Lights;
-using GOATracer.Cameras;
-using GOATracer.MVC;
 
 namespace GOATracer.Preview;
 
@@ -40,6 +42,8 @@ public class PreviewRenderer : OpenGlControlBase
     private Vector2 _lastPos;
     private bool _glLoaded;
     private float _cameraSpeed;
+    private List<Texture> _loadedTextures = [];
+    private readonly ImportedSceneDescription sceneDescription;
 
     private const int MaxLights = 128;
     
@@ -62,12 +66,13 @@ public class PreviewRenderer : OpenGlControlBase
     {
         _firstMove = true;
         _cameraSpeed = 0.5f;
-        
+        this.sceneDescription = sceneDescription;
+
         UpdateLights(lights);
 
         _cameraSettings = cameraSettings;
         _cameraSettings.UiCameraUpdate += OnCameraSettingsChangedFromUi;
-        
+
         // Make sure we can get keyboard focus
         this.Focusable = true;
 
@@ -102,7 +107,22 @@ public class PreviewRenderer : OpenGlControlBase
                         vertexDataList.Add(pos.Y);
                         vertexDataList.Add(pos.Z);
 
-                        // Get normals (Index ist 1-based)
+                        if (fv.TextureIndex.HasValue && sceneDescription.TexturePoints != null)
+                        {
+                            // Get texture coordinates (Index is 1-based)
+                            var tex = (Vector3)sceneDescription.TexturePoints[fv.TextureIndex - 1 ?? default(int)];
+                            // Add texture data to vertex data
+                            vertexDataList.Add(tex.X);
+                            vertexDataList.Add(tex.Y);
+                        }
+                        else
+                        {
+                            // No texture coordinates, add default
+                            vertexDataList.Add(0f);
+                            vertexDataList.Add(0f);
+                        }
+
+                        // Get normals (Index is 1-based)
                         // Add a check in case NormalPoints is null or the index is missing
                         var norm = defaultNormal;
                         if (sceneDescription.NormalPoints != null && fv.NormalIndex.HasValue &&
@@ -122,8 +142,8 @@ public class PreviewRenderer : OpenGlControlBase
 
         _vertices = vertexDataList.ToArray();
         // Calculate the amount of vertices to draw
-        // Because every vertex has 6 floats (position and normal), the _vertexCountToDraw gets divided by 6
-        _vertexCountToDraw = _vertices.Length / 6;
+        // Because every vertex has 8 floats (position, texture and normal), the _vertexCountToDraw gets divided by 8
+        _vertexCountToDraw = _vertices.Length / 8;
     }
 
     public void UpdateLights(List<Light> lights)
@@ -146,18 +166,20 @@ public class PreviewRenderer : OpenGlControlBase
         _camera.Pitch = _cameraSettings.RotationX;
         _camera.Yaw = _cameraSettings.RotationY;
     }
-    
+
     protected override void OnOpenGlInit(GlInterface gl)
     {
         base.OnOpenGlInit(gl);
-        
+
         // Allows OpenTK to load OpenGL functions using Avalonia's GL context
         GL.LoadBindings(new AvaloniaBindingsContext(gl));
         _glLoaded = true;
 
         // This will be the color of the background after we clear it, in normalized colors.
-        // This is black.
-        GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+        // This is dark blue.
+        GL.ClearColor(0.13f, 0.14f, 0.15f, 1.0f);
+
+        LoadTextures(sceneDescription);
 
         // To see which triangles are in front of others
         GL.Enable(EnableCap.DepthTest);
@@ -188,12 +210,16 @@ public class PreviewRenderer : OpenGlControlBase
             // Shader attributes linked to VBO data (VAO stores the mapping)
             var positionLocation = _lightingShader.GetAttribLocation("aPos");
             GL.EnableVertexAttribArray(positionLocation);
-            GL.VertexAttribPointer(positionLocation, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float), 0);
+            GL.VertexAttribPointer(positionLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
+
+            // texture coordinates attribute
+            var texCoordLocation = _lightingShader.GetAttribLocation("aTexCoord");
+            GL.EnableVertexAttribArray(texCoordLocation);
+            GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 8 * sizeof(float), 3 * sizeof(float));
 
             var normalLocation = _lightingShader.GetAttribLocation("aNormal");
             GL.EnableVertexAttribArray(normalLocation);
-            GL.VertexAttribPointer(normalLocation, 3, VertexAttribPointerType.Float, false, 6 * sizeof(float),
-                3 * sizeof(float));
+            GL.VertexAttribPointer(normalLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 5 * sizeof(float));
         }
 
         {
@@ -208,9 +234,21 @@ public class PreviewRenderer : OpenGlControlBase
 
         // set camera on position (0,0,3) and aspect ratio according to the control size
         _camera = new Camera(Vector3.UnitZ * 3, (float)(Bounds.Width / Bounds.Height));
-        
-        _cameraSettings.UpdatePosition(_camera.Position.X, _camera.Position.Y, _camera.Position.Z);
-        _cameraSettings.UpdateRotation(_camera.Pitch, _camera.Yaw, 0f);
+    }
+
+    private void LoadTextures(ImportedSceneDescription sceneDescription)
+    {
+        // go through Materials Dictionary and get DiffuseTexture (should be a path to image file)
+        foreach (var material in sceneDescription.Materials!)
+        {
+            if (!string.IsNullOrEmpty(material.Value.DiffuseTexture))
+            {
+                Console.WriteLine($"Material {material.Key} has diffuse texture: {material.Value.DiffuseTexture}");
+                // Load texture images
+                string imagePath = material.Value.DiffuseTexture;
+                _loadedTextures.Add(Texture.LoadFromFile(imagePath));
+            }
+        }
     }
 
     protected override void OnOpenGlRender(GlInterface gl, int fb)
@@ -233,6 +271,10 @@ public class PreviewRenderer : OpenGlControlBase
 
         // use our shader
         _lightingShader.Use();
+
+        _loadedTextures[0].Use(TextureUnit.Texture0);
+        _lightingShader.SetInt("texture0", 0);
+
         _lightingShader.SetMatrix4("model", Matrix4.Identity);
         _lightingShader.SetMatrix4("view", _camera.GetViewMatrix());
         _lightingShader.SetMatrix4("projection", _camera.GetProjectionMatrix());
@@ -291,9 +333,6 @@ public class PreviewRenderer : OpenGlControlBase
     /// </summary>
     private void HandleKeyboard()
     {
-        // Boolean specifying if the camera has been moved
-        var cameraMoved = false;
-        
         // Slow down camera speed
         if (_keys.Contains(Key.O))
         {
@@ -316,48 +355,36 @@ public class PreviewRenderer : OpenGlControlBase
         if (_keys.Contains(Key.W))
         {
             _camera.Position += _camera.Front * _cameraSpeed;
-            cameraMoved = true;
         }
 
         // Move camera backward
         if (_keys.Contains(Key.S))
         {
             _camera.Position -= _camera.Front * _cameraSpeed;
-            cameraMoved = true;
         }
 
         // Move camera to the left
         if (_keys.Contains(Key.A))
         {
             _camera.Position -= _camera.Right * _cameraSpeed;
-            cameraMoved = true;
         }
 
         // Move camera to the right
         if (_keys.Contains(Key.D))
         {
             _camera.Position += _camera.Right * _cameraSpeed;
-            cameraMoved = true;
         }
 
         // Raise the camera
         if (_keys.Contains(Key.Space))
         {
             _camera.Position += _camera.Up * _cameraSpeed;
-            cameraMoved = true;
         }
 
         // Lower the camera
         if (_keys.Contains(Key.LeftShift) || _keys.Contains(Key.RightShift))
         {
             _camera.Position -= _camera.Up * _cameraSpeed;
-            cameraMoved = true;
-        }
-        
-        // Check if the camera has been moved and update the binding if it has
-        if (cameraMoved)
-        {
-            _cameraSettings.UpdatePosition(_camera.Position.X, _camera.Position.Y, _camera.Position.Z);
         }
     }
 
@@ -420,10 +447,6 @@ public class PreviewRenderer : OpenGlControlBase
             _camera.Yaw += deltaX * sensitivity;
             // camera vertical rotation
             _camera.Pitch -= deltaY * sensitivity;
-            
-            // Update the binding of the camera settings
-            // Rotate the 2 dimensions by 90 degrees because of the different orientation
-            _cameraSettings.UpdateRotation(_camera.Yaw + 90.0f, _camera.Pitch - 90.0f, 0.0f);
         }
     }
 
