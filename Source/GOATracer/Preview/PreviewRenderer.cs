@@ -293,13 +293,11 @@ public class PreviewRenderer : OpenGlControlBase
 
         for (var i = 0; i < activeLightCount; i++)
         {
-            Vector3 lightColor;
-            lightColor.X = (MathF.Sin((time + i * 0.5f) * 2.0f) + 1) / 2f;
-            lightColor.Y = (MathF.Sin((time + i * 0.5f) * 0.7f) + 1) / 2f;
-            lightColor.Z = (MathF.Sin((time + i * 0.5f) * 1.3f) + 1) / 2f;
-            
-            var ambientColor = lightColor * new Vector3(0.2f);
-            var diffuseColor = lightColor * new Vector3(0.5f);
+            // white light
+            Vector3 lightColor = new Vector3(1.0f, 1.0f, 1.0f);
+
+            var ambientColor = lightColor * 0.05f;
+            var diffuseColor = lightColor * 0.9f;
             
             _lightingShader.SetVector3($"lights[{i}].position", _lights[i]);
             _lightingShader.SetVector3($"lights[{i}].ambient", ambientColor);

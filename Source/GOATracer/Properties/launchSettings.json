@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "GOATracer": {
+      "commandName": "Project",
+      "nativeDebugging": true
+    }
+  }
+}
