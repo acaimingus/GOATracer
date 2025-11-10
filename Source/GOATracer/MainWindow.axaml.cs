@@ -1,10 +1,17 @@
-using System.IO;
-using System.Text;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Interactivity;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using GOATracer.Importer.Obj;
+using GOATracer.Raytracer;
+using System.Collections.Generic;
+using System.IO;
+using System.Numerics;
+using System.Runtime.InteropServices;
+using System.Text;
 
 namespace GOATracer;
 
@@ -13,6 +20,7 @@ namespace GOATracer;
 /// </summary>
 public partial class MainWindow : Window
 {
+    ImportedSceneDescription sceneDescription;
     /// <summary>
     /// Constructor
     /// </summary>
@@ -62,7 +70,7 @@ public partial class MainWindow : Window
             await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
             
             // Import the .obj file and convert it into our scene data structure
-            var sceneDescription = ObjImporter.ImportModel(filePath);
+            sceneDescription = ObjImporter.ImportModel(filePath);
 
             // Set the import stats
             LoadedFilePathLabel.Content = $"Loaded file: { filePath }";
@@ -197,5 +205,41 @@ public partial class MainWindow : Window
     {
         // Close the app
         this.Close();
+    }
+
+    public void RenderButtonClicked(object? sender, RoutedEventArgs e)
+    {
+        if (sceneDescription == null)
+        {
+            LogOutputTextBlock.Text += "Error: No .obj file imported. Please import a file first.\n";
+            return;
+        }
+
+        LogOutputTextBlock.Text += $"Generating test image...\n";
+
+        if (LogOutputTextBlock != null)
+        {
+            LogOutputTextBlock.Text += "Start Rendering\n";
+        }
+
+        List<Raytracer.Light> Lights = new List<Raytracer.Light>();
+        Lights.Add(new Raytracer.Light(new Vector3(0, 15, 10), new Vector3(0, 0, 0), 100, new Vector3(1.0f, 1.0f, 0.8f)));
+        Raytracer.Camera camera = new Camera(new Vector3(0, 0, 5), new Vector3(0, 0, -1), 90, 0);
+        Raytracer.Scene scene = new Raytracer.Scene(Lights, camera, sceneDescription, 800, 600);
+        Raytracer.Raytracer raytracer = new Raytracer.Raytracer(scene);
+        byte[] pixelData = raytracer.render();
+        var format = PixelFormat.Bgra8888;
+
+        var bitmap = new WriteableBitmap(new PixelSize(scene.ImageWidth, scene.ImageHeight), new Avalonia.Vector(96, 96), format, AlphaFormat.Premul);
+        using (var frameBuffer = bitmap.Lock())
+        {
+            Marshal.Copy(pixelData, 0, frameBuffer.Address, pixelData.Length);
+        }
+
+
+        Raytracer.RaytraceWindow raytraceWindow = new Raytracer.RaytraceWindow(bitmap);
+        raytraceWindow.Show();
+
+
     }
 }

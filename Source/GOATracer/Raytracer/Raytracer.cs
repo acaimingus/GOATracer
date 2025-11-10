@@ -1,5 +1,6 @@
 ﻿using Avalonia.Markup.Xaml.MarkupExtensions;
 using GOATracer.Importer.Obj;
+using System;
 using System.Numerics;
 
 
@@ -16,37 +17,68 @@ namespace GOATracer.Raytracer
             this.scene = scene;
         }
 
-        public void render()
+
+        public byte[] render()
         {
+            byte[] buffer = new byte[scene.ImageWidth * scene.ImageHeight * 4];
+            int width = scene.ImageWidth;
+            int height = scene.ImageHeight;
+
             // For each pixel in the image
-            for (int y = 0; y < scene.ImageHeight; y++)
+            for (int y = 0; y < height; y++)
             {
-                for (int x = 0; x < scene.ImageWidth; x++)
+                for (int x = 0; x < width; x++)
                 {
                     // Compute the ray direction from the camera through the pixel
                     Vector3 rayDirection = scene.Camera.GetRayDirection(x, y, scene.ImageWidth, scene.ImageHeight);
+
                     // Trace the ray through the scene
-                    traceRay(scene.Camera.Position, rayDirection, scene);
+                    Vector3 color = traceRay(scene.Camera.Position, rayDirection, scene);
+
+                    // Get the starting index for this pixel in the 1D buffer
+                    int index = (y * width + x) * 4;
+
+                    // Convert Vector3 color (0.0-1.0) to BGRA8888 bytes (0-255)
+                    buffer[index] = (byte)(Math.Clamp(color.Z, 0, 1) * 255);     // Blue
+                    buffer[index + 1] = (byte)(Math.Clamp(color.Y, 0, 1) * 255); // Green
+                    buffer[index + 2] = (byte)(Math.Clamp(color.X, 0, 1) * 255); // Red
+                    buffer[index + 3] = 255;
                 }
             }
+            return buffer;
         }
 
         // Trace a ray from support vector sv in direction dv through the scene and return the color
         public Vector3 traceRay(Vector3 sv, Vector3 dv, Scene scene)
         {
             // Find the first intersection with the scene
-            if (intersect(sv, dv, out Vector3 intersectionPoint, out Vector3 normal, out Vector3 materialConstant))
+            if (intersect(sv, dv, out Vector3 intersectionPoint, out Vector3 normal, out Vector3 materialDiffuseColor))
             {
-                // If we hit something, compute the shading
-                // get the light direction
+                // --- SHADOW CHECK ---
+                // Get direction to the first light
                 Vector3 lightDirection = Vector3.Normalize(scene.Lights[0].Position - intersectionPoint);
 
-                return shade(normal, materialConstant, intersectionPoint, lightDirection, scene);
+                // Move the shadow ray origin slightly off the surface to avoid "shadow acne"
+                Vector3 shadowRayOrigin = intersectionPoint + normal * 0.0001f;
+
+                // Check if another object is between this point and the light
+                if (intersect(shadowRayOrigin, lightDirection, out _, out _, out _))
+                {
+                    // IN SHADOW: Return only a dim ambient light
+                    // We use the material color multiplied by a dark ambient factor
+                    Vector3 ambientLight = new Vector3(0.1f, 0.1f, 0.1f);
+                    return materialDiffuseColor * ambientLight;
+                }
+                else
+                {
+                    // NOT IN SHADOW: Compute the full Phong shading
+                    return shade(normal, materialDiffuseColor, intersectionPoint, lightDirection, scene);
+                }
             }
             else
             {
-                // If the ray hits nothing, return a background color
-                return Vector3.Zero;
+                // If the ray hits nothing, return the background color
+                return new Vector3(0.0f, 0.1f, 0.3f);
             }
         }
 
@@ -136,11 +168,7 @@ namespace GOATracer.Raytracer
                                 // Retrieve the material color from the scene's material library.
                                 if (face.Material != null && scene.SceneDescription.Materials.TryGetValue(face.Material, out var matProps))
                                 {
-                                    // Assuming 'ObjectMaterial' has a 'Vector3 Diffuse' property.
-                                    // material = matProps.Diffuse; 
-
-                                    // Placeholder: Use a visible color if material is found.
-                                    material = new Vector3(0.8f, 0.8f, 0.8f);
+                                    material = matProps.Diffuse;
                                 }
                                 else
                                 {
@@ -250,12 +278,40 @@ namespace GOATracer.Raytracer
             }
         }
 
-
+        // https://www.scratchapixel.com/lessons/3d-basic-rendering/phong-shader-BRDF/phong-illumination-models-brdf.html
         // Shade the intersection point given normal, material constant, intersection point, light direction and scene
-        public Vector3 shade(Vector3 normal, Vector3 materialConstant, Vector3 intersectionPoint, Vector3 lightDirecetion, Scene scene)
+        public Vector3 shade(Vector3 normal, Vector3 materialDiffuseColor, Vector3 intersectionPoint, Vector3 lightDirection, Scene scene)
         {
-            // ToDo: Phong shading model
-            return materialConstant; // Placeholder: return material constant as color
+            materialDiffuseColor = new Vector3(0.8f, 0.8f, 0.8f);
+            // --- 1. Define Light Properties ---
+            Vector3 lightColor = scene.Lights[0].Color;
+
+            // --- 2. Define Material Properties
+            Vector3 ambientColor = materialDiffuseColor * 0.1f; // 10% ambient
+            Vector3 diffuseColor = materialDiffuseColor;
+            Vector3 specularColor = new Vector3(1.0f, 1.0f, 1.0f); // White highlights
+            float shininess = 32.0f; // A standard shininess value
+
+            // --- 3. Ambient Component (Global illumination) ---
+            Vector3 ambient = ambientColor;
+
+            // --- 4. Diffuse Component (Lambertian reflection) ---
+            // Calculates how much the surface is facing the light
+            float diffuseFactor = Math.Max(0.0f, Vector3.Dot(normal, lightDirection));
+            Vector3 diffuse = diffuseColor * lightColor * diffuseFactor;
+
+            // --- 5. Specular Component (Phong reflection) ---
+            // Calculates the "shiny" highlight
+            Vector3 viewDir = Vector3.Normalize(scene.Camera.Position - intersectionPoint);
+            Vector3 reflectDir = Vector3.Reflect(-lightDirection, normal);
+            float specularFactor = (float)Math.Pow(Math.Max(0.0f, Vector3.Dot(viewDir, reflectDir)), shininess);
+            Vector3 specular = specularColor * lightColor * specularFactor;
+
+            // --- 6. Combine all components ---
+            Vector3 finalColor = ambient + diffuse + specular;
+
+            // Clamp the color to be between 0.0 and 1.0
+            return Vector3.Clamp(finalColor, Vector3.Zero, Vector3.One);
         }
     }
 }

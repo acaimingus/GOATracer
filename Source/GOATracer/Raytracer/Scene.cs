@@ -9,17 +9,17 @@ namespace GOATracer.Raytracer
         public Camera Camera { get; set; }
         public ImportedSceneDescription SceneDescription { get; set; }
 
-        public int ImageHeight { get; }
-        public int ImageWidth { get; }
+        public int ImageHeight { get; set;  }
+        public int ImageWidth { get; set; }
 
-        public Scene(List<Light> lights, Camera camera, ImportedSceneDescription sceneDescription)
+        public Scene(List<Light> lights, Camera camera, ImportedSceneDescription sceneDescription, int imageWidth, int imageHeight)
         {
             this.Lights = lights;
             this.Camera = camera;
             this.SceneDescription = sceneDescription;
 
-            this.ImageHeight = 800;
-            this.ImageWidth = 450;
+            this.ImageHeight = imageHeight;
+            this.ImageWidth = imageWidth;
         }
     }
 }

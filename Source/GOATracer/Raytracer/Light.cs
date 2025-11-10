@@ -31,11 +31,17 @@ namespace GOATracer.Raytracer
             set { _intensity = value; }
         }
 
-        public Light(Vector3 position, Vector3 direction, double intensity)
+        public Vector3 Color
+        {
+            get; set;
+        }
+
+        public Light(Vector3 position, Vector3 direction, double intensity, Vector3 color)
         {
             this._position = position;
             this._direction = direction;
             this._intensity = intensity;
+            this.Color = color;
         }
     }
 }

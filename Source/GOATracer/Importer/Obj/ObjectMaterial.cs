@@ -55,6 +55,7 @@ public class ObjectMaterial
     /// Also known as the map_Kd tag in .mtl files.
     /// </summary>
     public string? DiffuseTexture { get; }
+    public Vector3 Diffuse { get; internal set; }
 
     /// <summary>
     /// Constructor for the Material itself.
