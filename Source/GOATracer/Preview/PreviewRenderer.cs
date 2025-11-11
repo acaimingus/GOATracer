@@ -296,13 +296,6 @@ public class PreviewRenderer : OpenGlControlBase
         _lightingShader.SetMatrix4("projection", _camera.GetProjectionMatrix());
         _lightingShader.SetVector3("viewPos", _camera.Position);
 
-        // Here we set the material values of the cube, the material struct is just a container so to access
-        // the underlying values we simply type "material.value" to get the location of the uniform
-        _lightingShader.SetVector3("material.ambient", new Vector3(1.0f, 0.5f, 0.31f));
-        _lightingShader.SetVector3("material.diffuse", new Vector3(1.0f, 1.0f, 1.0f));
-        _lightingShader.SetVector3("material.specular", new Vector3(0.5f, 0.5f, 0.5f));
-        _lightingShader.SetFloat("material.shininess", 32.0f);
-        
         var activeLightCount = Math.Min(_lights.Count, MaxLights);
         _lightingShader.SetInt("activeLightCount", activeLightCount);
         var time = DateTime.Now.Second + DateTime.Now.Millisecond / 1000f;
@@ -310,14 +303,14 @@ public class PreviewRenderer : OpenGlControlBase
         for (var i = 0; i < activeLightCount; i++)
         {
             // white light
-            Vector3 lightColor = new Vector3(1.0f, 1.0f, 1.0f);
+            Vector3 lightColor = new Vector3(1f, 1f, 1f);
 
             var ambientColor = lightColor * 0.05f;
 
             _lightingShader.SetVector3($"lights[{i}].position", _lights[i]);
             _lightingShader.SetVector3($"lights[{i}].ambient", ambientColor);
             _lightingShader.SetVector3($"lights[{i}].diffuse", lightColor);
-            _lightingShader.SetVector3($"lights[{i}].specular", new Vector3(1.0f, 1.0f, 1.0f));
+            _lightingShader.SetVector3($"lights[{i}].specular", new Vector3(0.1f, 0.1f, 0.1f));
         }
 
         foreach (var (texturePath, vao) in _vaos)
@@ -332,6 +325,44 @@ public class PreviewRenderer : OpenGlControlBase
                 defaultTexture.Use(TextureUnit.Texture0);
                 _lightingShader.SetInt("texture0", 0);
             }
+            
+            var material = _sceneDescription.Materials?
+                .FirstOrDefault(m => m.Value.DiffuseTexture == texturePath)
+                .Value;
+                    
+            var matAmbient = new Vector3(0.1f, 0.1f, 0.1f);
+            var matDiffuse = new Vector3(1.0f, 1.0f, 1.0f);
+            var matSpecular = new Vector3(0.5f, 0.5f, 0.5f);
+            var matShininess = 32.0f;
+        
+            if (material != null)
+            {
+                if (material.ColorAmbient != null)
+                {
+                    matAmbient = (Vector3)material.ColorAmbient;
+                }
+                if (material.ColorDiffuse != null)
+                {
+                    matDiffuse = (Vector3)material.ColorDiffuse;
+                }
+                if (material.ColorSpecular != null)
+                {
+                    matSpecular = (Vector3)material.ColorSpecular;
+                }
+
+                if (material.SpecularExponent != null)
+                {
+                    matShininess =  (float)material.SpecularExponent;
+                }
+            }
+        
+            // Here we set the material values of the cube, the material struct is just a container so to access
+            // the underlying values we simply type "material.value" to get the location of the uniform
+            _lightingShader.SetVector3("material.ambient", matAmbient);
+            _lightingShader.SetVector3("material.diffuse", matDiffuse);
+            _lightingShader.SetVector3("material.specular", matSpecular);
+            _lightingShader.SetFloat("material.shininess", matShininess);
+            
             _lightingShader.SetMatrix4("model", Matrix4.Identity);
             GL.BindVertexArray(vao);
             GL.DrawArrays(PrimitiveType.Triangles, 0, _vertexCounts[texturePath]);
