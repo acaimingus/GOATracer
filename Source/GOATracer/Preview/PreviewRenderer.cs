@@ -18,10 +18,11 @@ namespace GOATracer.Preview;
 
 public class PreviewRenderer : OpenGlControlBase
 {
-    private readonly float[] _vertices;
-    private readonly int _vertexCountToDraw;
+    private Dictionary<string, List<float>> _verticesByTexture = new();
+    private Dictionary<string, int> _vaos = new();
+    private Dictionary<string, int> _vbos = new();
+    private Dictionary<string, int> _vertexCounts = new();
     private List<Vector3> _lights;
-    private int _vertexBufferObject;
     private readonly float[] _lampVertices =
     {
         -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f,  0.5f, -0.5f, 0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
@@ -32,7 +33,6 @@ public class PreviewRenderer : OpenGlControlBase
         -0.5f,  0.5f, -0.5f, 0.5f,  0.5f, -0.5f, 0.5f,  0.5f,  0.5f, 0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f
     };
     private int _lampBufferObject;
-    private int _vaoModel;
     private int _vaoLamp;
     private Shader _lampShader;
     private Shader _lightingShader;
@@ -42,8 +42,8 @@ public class PreviewRenderer : OpenGlControlBase
     private Vector2 _lastPos;
     private bool _glLoaded;
     private float _cameraSpeed;
-    private List<Texture> _loadedTextures = [];
-    private readonly ImportedSceneDescription sceneDescription;
+    private Dictionary<string,Texture> _loadedTextures = new();
+    private readonly ImportedSceneDescription _sceneDescription;
 
     private const int MaxLights = 128;
     
@@ -66,7 +66,7 @@ public class PreviewRenderer : OpenGlControlBase
     {
         _firstMove = true;
         _cameraSpeed = 0.5f;
-        this.sceneDescription = sceneDescription;
+        this._sceneDescription = sceneDescription;
 
         UpdateLights(lights);
 
@@ -78,15 +78,26 @@ public class PreviewRenderer : OpenGlControlBase
 
         var vertexDataList = new List<float>();
 
-        // Default normal, if no other is available
-        var defaultNormal = Vector3.UnitY;
-
-        // loop through all objects in the scene
-        foreach (var objDesc in sceneDescription.ObjectDescriptions!)
+        foreach (var objectDescription in sceneDescription.ObjectDescriptions!)
         {
-            // loop through all faces in the object
-            foreach (var face in objDesc.FacePoints)
+            foreach (var face in objectDescription.FacePoints)
             {
+                var texturePath = "default";
+                if (sceneDescription.Materials != null && sceneDescription.Materials.TryGetValue(face.Material, out var material))
+                {
+                    if (!string.IsNullOrEmpty(material.DiffuseTexture))
+                    {
+                        texturePath = material.DiffuseTexture;
+                    }
+                }
+
+                if (!_verticesByTexture.ContainsKey(texturePath))
+                {
+                    _verticesByTexture[texturePath] = new List<float>();
+                }
+
+                var currentVertexList = _verticesByTexture[texturePath];
+                
                 // OBJ-faces can have more than 3 points => triangulation needed
                 // Simple triangulation
                 var rootVertex = face.Indices[0];
@@ -103,25 +114,28 @@ public class PreviewRenderer : OpenGlControlBase
                     {
                         // Get the vertex position (.obj Index is 1-based)
                         var pos = (Vector3)sceneDescription.VertexPoints[fv.VertexIndex - 1];
-                        vertexDataList.Add(pos.X);
-                        vertexDataList.Add(pos.Y);
-                        vertexDataList.Add(pos.Z);
+                        currentVertexList.Add(pos.X);
+                        currentVertexList.Add(pos.Y);
+                        currentVertexList.Add(pos.Z);
 
                         if (fv.TextureIndex.HasValue && sceneDescription.TexturePoints != null)
                         {
                             // Get texture coordinates (Index is 1-based)
                             var tex = (Vector3)sceneDescription.TexturePoints[fv.TextureIndex - 1 ?? default(int)];
                             // Add texture data to vertex data
-                            vertexDataList.Add(tex.X);
-                            vertexDataList.Add(tex.Y);
+                            currentVertexList.Add(tex.X);
+                            currentVertexList.Add(tex.Y);
                         }
                         else
                         {
                             // No texture coordinates, add default
-                            vertexDataList.Add(0f);
-                            vertexDataList.Add(0f);
+                            currentVertexList.Add(0f);
+                            currentVertexList.Add(0f);
                         }
 
+                        // Default normal, if no other is available
+                        var defaultNormal = Vector3.UnitY;
+                        
                         // Get normals (Index is 1-based)
                         // Add a check in case NormalPoints is null or the index is missing
                         var norm = defaultNormal;
@@ -132,18 +146,13 @@ public class PreviewRenderer : OpenGlControlBase
                         }
 
                         // Add normal data to vertex data
-                        vertexDataList.Add(norm.X);
-                        vertexDataList.Add(norm.Y);
-                        vertexDataList.Add(norm.Z);
+                        currentVertexList.Add(norm.X);
+                        currentVertexList.Add(norm.Y);
+                        currentVertexList.Add(norm.Z);
                     }
                 }
             }
         }
-
-        _vertices = vertexDataList.ToArray();
-        // Calculate the amount of vertices to draw
-        // Because every vertex has 8 floats (position, texture and normal), the _vertexCountToDraw gets divided by 8
-        _vertexCountToDraw = _vertices.Length / 8;
     }
 
     public void UpdateLights(List<Light> lights)
@@ -179,49 +188,49 @@ public class PreviewRenderer : OpenGlControlBase
         // This is dark blue.
         GL.ClearColor(0.13f, 0.14f, 0.15f, 1.0f);
 
-        LoadTextures(sceneDescription);
+        LoadTextures(_sceneDescription);
 
         // To see which triangles are in front of others
         GL.Enable(EnableCap.DepthTest);
+        
+        _lightingShader = new Shader("Shaders/shader.vert", "Shaders/lighting.frag");
+        _lampShader = new Shader("Shaders/shader.vert", "Shaders/shader.frag");
 
-        // We need to send our vertices over to the graphics card so OpenGL can use them -> create a VBO & send buffer to 
-        // stores vertex data in GPU memory
-        _vertexBufferObject = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
-        GL.BufferData(BufferTarget.ArrayBuffer, _vertices.Length * sizeof(float), _vertices,
-            BufferUsageHint.StaticDraw);
+        foreach (var (texturePath, vertices) in  _verticesByTexture)
+        {
+            var vbo = GL.GenBuffer();
+            GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
+            
+            var vertexArray = vertices.ToArray();
+            GL.BufferData(BufferTarget.ArrayBuffer, vertexArray.Length * sizeof(float), vertexArray, BufferUsageHint.StaticDraw);
+            
+            var vao = GL.GenVertexArray();
+            GL.BindVertexArray(vao);
+            
+            // Shader attributes linked to VBO data (VAO stores the mapping)
+            var positionLocation = _lightingShader.GetAttribLocation("aPos");
+            GL.EnableVertexAttribArray(positionLocation);
+            GL.VertexAttribPointer(positionLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
+            
+            // texture coordinates attribute
+            var texCoordLocation = _lightingShader.GetAttribLocation("aTexCoord");
+            GL.EnableVertexAttribArray(texCoordLocation);
+            GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 8 * sizeof(float), 3 * sizeof(float));
+            
+            var normalLocation = _lightingShader.GetAttribLocation("aNormal");
+            GL.EnableVertexAttribArray(normalLocation);
+            GL.VertexAttribPointer(normalLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 5 * sizeof(float));
+            
+            _vbos[texturePath] = vbo;
+            _vaos[texturePath] = vao;
+            _vertexCounts[texturePath] = vertexArray.Length / 8;
+        }
 
         // Create a SEPARATE VBO for the lamp objects
         _lampBufferObject = GL.GenBuffer();
         GL.BindBuffer(BufferTarget.ArrayBuffer, _lampBufferObject);
         GL.BufferData(BufferTarget.ArrayBuffer, _lampVertices.Length * sizeof(float), _lampVertices, BufferUsageHint.StaticDraw);
         
-        // Shaders are tiny programs that live on the GPU. OpenGL uses them to handle the vertex-to-pixel pipeline.
-        _lightingShader = new Shader("Shaders/shader.vert", "Shaders/lighting.frag");
-        _lampShader = new Shader("Shaders/shader.vert", "Shaders/shader.frag");
-
-        {
-            // Vertex Array Object (VAO) has the job of keeping track of what parts or what buffers correspond to what data & bind it
-            // stores state of vertex attribute configurations (how data is laid out etc.)
-            _vaoModel = GL.GenVertexArray();
-            GL.BindVertexArray(_vaoModel);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _vertexBufferObject);
-
-            // Shader attributes linked to VBO data (VAO stores the mapping)
-            var positionLocation = _lightingShader.GetAttribLocation("aPos");
-            GL.EnableVertexAttribArray(positionLocation);
-            GL.VertexAttribPointer(positionLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 0);
-
-            // texture coordinates attribute
-            var texCoordLocation = _lightingShader.GetAttribLocation("aTexCoord");
-            GL.EnableVertexAttribArray(texCoordLocation);
-            GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 8 * sizeof(float), 3 * sizeof(float));
-
-            var normalLocation = _lightingShader.GetAttribLocation("aNormal");
-            GL.EnableVertexAttribArray(normalLocation);
-            GL.VertexAttribPointer(normalLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 5 * sizeof(float));
-        }
-
         {
             _vaoLamp = GL.GenVertexArray();
             GL.BindVertexArray(_vaoLamp);
@@ -239,17 +248,22 @@ public class PreviewRenderer : OpenGlControlBase
         _cameraSettings.UpdateRotation(_camera.Pitch, _camera.Yaw, 0f);
     }
 
-    private void LoadTextures(ImportedSceneDescription sceneDescription)
+    private void LoadTextures(ImportedSceneDescription? sceneDescription)
     {
-        // go through Materials Dictionary and get DiffuseTexture (should be a path to image file)
-        foreach (var material in sceneDescription.Materials!)
+        if (sceneDescription != null)
         {
-            if (!string.IsNullOrEmpty(material.Value.DiffuseTexture))
+            // go through Materials Dictionary and get DiffuseTexture (should be a path to image file)
+            foreach (var material in sceneDescription.Materials!)
             {
-                Console.WriteLine($"Material {material.Key} has diffuse texture: {material.Value.DiffuseTexture}");
-                // Load texture images
-                string imagePath = material.Value.DiffuseTexture;
-                _loadedTextures.Add(Texture.LoadFromFile(imagePath));
+                if (!string.IsNullOrEmpty(material.Value.DiffuseTexture))
+                {
+                    // Load texture images
+                    var imagePath = material.Value.DiffuseTexture;
+                    if (!_loadedTextures.ContainsKey(imagePath))
+                    {
+                        _loadedTextures[imagePath] = Texture.LoadFromFile(imagePath);
+                    }
+                }
             }
         }
     }
@@ -269,13 +283,9 @@ public class PreviewRenderer : OpenGlControlBase
         
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
 
-        // bind VOA, how to interpret vertex data
-        GL.BindVertexArray(_vaoModel);
-
         // use our shader
         _lightingShader.Use();
-
-        _loadedTextures[0].Use(TextureUnit.Texture0);
+        
         _lightingShader.SetInt("texture0", 0);
 
         _lightingShader.SetMatrix4("model", Matrix4.Identity);
@@ -307,8 +317,23 @@ public class PreviewRenderer : OpenGlControlBase
             _lightingShader.SetVector3($"lights[{i}].specular", new Vector3(1.0f, 1.0f, 1.0f));
         }
 
-        // call to draw the vertices
-        GL.DrawArrays(PrimitiveType.Triangles, 0, _vertexCountToDraw);
+        foreach (var (texturePath, vao) in _vaos)
+        {
+            if (_loadedTextures.TryGetValue(texturePath, out var texture))
+            {
+                texture.Use(TextureUnit.Texture0);
+                _lightingShader.SetInt("texture0", 0);
+            }
+            else if (_loadedTextures.TryGetValue("default", out var defaultTexture))
+            {
+                defaultTexture.Use(TextureUnit.Texture0);
+                _lightingShader.SetInt("texture0", 0);
+            }
+            _lightingShader.SetMatrix4("model", Matrix4.Identity);
+            GL.BindVertexArray(vao);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, _vertexCounts[texturePath]);
+        }
+        
         GL.BindVertexArray(_vaoLamp);
         
         _lampShader.SetMatrix4("view", _camera.GetViewMatrix());
