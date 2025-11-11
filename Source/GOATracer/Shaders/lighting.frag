@@ -52,7 +52,7 @@ void main()
         // Diffuse
         vec3 lightDir = normalize(lights[i].position - FragPos);
         float diff = max(dot(norm, lightDir), 0.0);
-        diffuse += lights[i].diffuse * (diff * texColor);
+        diffuse += lights[i].diffuse * (diff * material.diffuse * texColor);
 
         // Specular
         vec3 reflectDir = reflect(-lightDir, norm);

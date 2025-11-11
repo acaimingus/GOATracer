@@ -286,7 +286,7 @@ public class PreviewRenderer : OpenGlControlBase
         // Here we set the material values of the cube, the material struct is just a container so to access
         // the underlying values we simply type "material.value" to get the location of the uniform
         _lightingShader.SetVector3("material.ambient", new Vector3(1.0f, 0.5f, 0.31f));
-        _lightingShader.SetVector3("material.diffuse", new Vector3(1.0f, 0.5f, 0.31f));
+        _lightingShader.SetVector3("material.diffuse", new Vector3(1.0f, 1.0f, 1.0f));
         _lightingShader.SetVector3("material.specular", new Vector3(0.5f, 0.5f, 0.5f));
         _lightingShader.SetFloat("material.shininess", 32.0f);
         
@@ -300,11 +300,10 @@ public class PreviewRenderer : OpenGlControlBase
             Vector3 lightColor = new Vector3(1.0f, 1.0f, 1.0f);
 
             var ambientColor = lightColor * 0.05f;
-            var diffuseColor = lightColor * 0.9f;
-            
+
             _lightingShader.SetVector3($"lights[{i}].position", _lights[i]);
             _lightingShader.SetVector3($"lights[{i}].ambient", ambientColor);
-            _lightingShader.SetVector3($"lights[{i}].diffuse", diffuseColor);
+            _lightingShader.SetVector3($"lights[{i}].diffuse", lightColor);
             _lightingShader.SetVector3($"lights[{i}].specular", new Vector3(1.0f, 1.0f, 1.0f));
         }
 
