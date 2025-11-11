@@ -1,11 +1,5 @@
-﻿using GOATracer.Importer.Obj;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
-using System.Numerics;
+﻿using System.Collections.Generic;
+using GOATracer.Importer.Obj;
 
 namespace GOATracer.Raytracer
 {
@@ -13,13 +7,13 @@ namespace GOATracer.Raytracer
     {
         public List<Light> Lights { get; set; }
         public Camera Camera { get; set; }
-        public ImportedSceneDescription SceneDescription { get; set; }
-        public List<ObjectFace> FacePoints { get; set; }
+        public SceneDescription SceneDescription { get; set; }
+        public List<FaceDescription> FacePoints { get; set; }
 
-        public int ImageHeight { get; }
-        public int ImageWidth { get; }
+        public int ImageHeight { get; set;  }
+        public int ImageWidth { get; set; }
 
-        public Scene(List<Light> lights, Camera camera, ImportedSceneDescription sceneDescription)
+        public Scene(List<Light> lights, Camera camera, SceneDescription sceneDescription)
         {
             this.Lights = lights;
             this.Camera = camera;
@@ -30,7 +24,7 @@ namespace GOATracer.Raytracer
 
             this.FacePoints = sceneDescription.ObjectDescriptions?.Count > 0
                 ? sceneDescription.ObjectDescriptions.SelectMany(o => o.FacePoints).ToList()
-                : new List<ObjectFace>();
+                : new List<FaceDescription>();
         }
     }
 }
