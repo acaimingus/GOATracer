@@ -276,9 +276,12 @@ public class PreviewRenderer : OpenGlControlBase
         // Handle controls in the viewport
         HandleKeyboard();
         
+        // Add a scaling factor for displays which use it
+        var scalingFactor = this.VisualRoot.RenderScaling;
+        
         // set viewport according to the control size
-        var w = Math.Max(1, (int)Bounds.Width);
-        var h = Math.Max(1, (int)Bounds.Height);
+        var w = Math.Max(1, (int)(Bounds.Width * scalingFactor));
+        var h = Math.Max(1, (int)(Bounds.Height * scalingFactor));
         GL.Viewport(0, 0, w, h);
         
         GL.Clear(ClearBufferMask.ColorBufferBit | ClearBufferMask.DepthBufferBit);
