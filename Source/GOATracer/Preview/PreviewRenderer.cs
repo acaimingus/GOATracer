@@ -185,7 +185,7 @@ public class PreviewRenderer : OpenGlControlBase
         _glLoaded = true;
 
         // This will be the color of the background after we clear it, in normalized colors.
-        // This is dark blue.
+        // This is gray
         GL.ClearColor(0.13f, 0.14f, 0.15f, 1.0f);
 
         LoadTextures(_sceneDescription);

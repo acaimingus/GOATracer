@@ -91,7 +91,7 @@
             </ScrollViewer>
             <!-- Render area -->
             <Grid x:Name="RenderArea" Grid.Column="1" RowDefinitions="3*,1*">
-                <Panel Grid.Row="0" x:Name="RenderPanel" Background="Black" PointerPressed="RenderPanel_PointerPressed"
+                <Panel Grid.Row="0" x:Name="RenderPanel" Background="#212426" PointerPressed="RenderPanel_PointerPressed"
                        PointerReleased="RenderPanel_PointerReleased" PointerMoved="RenderPanel_PointerMoved" />
                 <TextBox Grid.Row="1" x:Name="LogOutputTextBlock" IsReadOnly="True" />
             </Grid>
