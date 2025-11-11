@@ -4,7 +4,7 @@ using Avalonia.Markup.Xaml;
 using System;
 using Avalonia.Media.Imaging;
 
-namespace GOATracer;
+namespace GOATracer.Views;
 
 public partial class RenderWindow : Window
 {
