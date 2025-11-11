@@ -234,6 +234,9 @@ public class PreviewRenderer : OpenGlControlBase
 
         // set camera on position (0,0,3) and aspect ratio according to the control size
         _camera = new Camera(Vector3.UnitZ * 3, (float)(Bounds.Width / Bounds.Height));
+        
+        _cameraSettings.UpdatePosition(_camera.Position.X, _camera.Position.Y, _camera.Position.Z);
+        _cameraSettings.UpdateRotation(_camera.Pitch, _camera.Yaw, 0f);
     }
 
     private void LoadTextures(ImportedSceneDescription sceneDescription)
@@ -331,6 +334,9 @@ public class PreviewRenderer : OpenGlControlBase
     /// </summary>
     private void HandleKeyboard()
     {
+        // Boolean specifying if the camera has been moved
+        var cameraMoved = false;
+        
         // Slow down camera speed
         if (_keys.Contains(Key.O))
         {
@@ -353,36 +359,48 @@ public class PreviewRenderer : OpenGlControlBase
         if (_keys.Contains(Key.W))
         {
             _camera.Position += _camera.Front * _cameraSpeed;
+            cameraMoved = true;
         }
 
         // Move camera backward
         if (_keys.Contains(Key.S))
         {
             _camera.Position -= _camera.Front * _cameraSpeed;
+            cameraMoved = true;
         }
 
         // Move camera to the left
         if (_keys.Contains(Key.A))
         {
             _camera.Position -= _camera.Right * _cameraSpeed;
+            cameraMoved = true;
         }
 
         // Move camera to the right
         if (_keys.Contains(Key.D))
         {
             _camera.Position += _camera.Right * _cameraSpeed;
+            cameraMoved = true;
         }
 
         // Raise the camera
         if (_keys.Contains(Key.Space))
         {
             _camera.Position += _camera.Up * _cameraSpeed;
+            cameraMoved = true;
         }
 
         // Lower the camera
         if (_keys.Contains(Key.LeftShift) || _keys.Contains(Key.RightShift))
         {
             _camera.Position -= _camera.Up * _cameraSpeed;
+            cameraMoved = true;
+        }
+        
+        // Check if the camera has been moved and update the binding if it has
+        if (cameraMoved)
+        {
+            _cameraSettings.UpdatePosition(_camera.Position.X, _camera.Position.Y, _camera.Position.Z);
         }
     }
 
@@ -445,6 +463,10 @@ public class PreviewRenderer : OpenGlControlBase
             _camera.Yaw += deltaX * sensitivity;
             // camera vertical rotation
             _camera.Pitch -= deltaY * sensitivity;
+            
+            // Update the binding of the camera settings
+            // Rotate the 2 dimensions by 90 degrees because of the different orientation
+            _cameraSettings.UpdateRotation(_camera.Yaw + 90.0f, _camera.Pitch - 90.0f, 0.0f);
         }
     }
 
