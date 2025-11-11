@@ -310,7 +310,7 @@ public class PreviewRenderer : OpenGlControlBase
             _lightingShader.SetVector3($"lights[{i}].position", _lights[i]);
             _lightingShader.SetVector3($"lights[{i}].ambient", ambientColor);
             _lightingShader.SetVector3($"lights[{i}].diffuse", lightColor);
-            _lightingShader.SetVector3($"lights[{i}].specular", new Vector3(0.1f, 0.1f, 0.1f));
+            _lightingShader.SetVector3($"lights[{i}].specular", new Vector3(1.0f, 1.0f, 1.0f));
         }
 
         foreach (var (texturePath, vao) in _vaos)
@@ -332,7 +332,7 @@ public class PreviewRenderer : OpenGlControlBase
                     
             var matAmbient = new Vector3(0.1f, 0.1f, 0.1f);
             var matDiffuse = new Vector3(1.0f, 1.0f, 1.0f);
-            var matSpecular = new Vector3(0.5f, 0.5f, 0.5f);
+            var matSpecular = new Vector3(0.01f, 0.01f, 0.01f);
             var matShininess = 32.0f;
         
             if (material != null)
@@ -352,7 +352,10 @@ public class PreviewRenderer : OpenGlControlBase
 
                 if (material.SpecularExponent != null)
                 {
-                    matShininess =  (float)material.SpecularExponent;
+                    if (material.SpecularExponent != 0.0f)
+                    {
+                        matShininess =  (float)material.SpecularExponent;
+                    }
                 }
             }
         
