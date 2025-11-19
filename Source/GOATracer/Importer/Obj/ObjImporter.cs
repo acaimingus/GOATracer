@@ -49,7 +49,7 @@ public static class ObjImporter
                 var firstSpaceIndex = line.IndexOf(' ');
 
                 // Extract the .obj command type (o, v, f, etc.) by splitting off the first word from the line
-                var firstWord = line[..firstSpaceIndex];
+                var firstWord = GetFirstWord(line);
 
                 // Parse different types of .obj file data based on the command
                 switch (firstWord)
@@ -213,14 +213,14 @@ public static class ObjImporter
             var firstSpaceIndex = line.IndexOf(' ');
             
             // Check what type of .obj command this line contains
-            var firstWord = line[..firstSpaceIndex];
+            var firstWord = GetFirstWord(line);
             
             switch (firstWord)
             {
                 // New material command found
                 case "newmtl":
                     // Unless it's the first time setting newmtl, add the imported material to the material list
-                    if (currentMaterial != null)
+                    if (currentMaterial != null && !sceneDescription.Materials.ContainsKey(currentMaterial.MaterialName))
                     {
                         // Add the material with the imported properties until now
                         sceneDescription.Materials.Add(currentMaterial.MaterialName, currentMaterial.BuildObjectMaterial());
@@ -284,9 +284,22 @@ public static class ObjImporter
         }
         
         // Add the last material (if it is there)
-        if (currentMaterial != null)
+        if (currentMaterial != null && !sceneDescription.Materials.ContainsKey(currentMaterial.MaterialName))
         {
             sceneDescription.Materials!.Add(currentMaterial!.MaterialName, currentMaterial.BuildObjectMaterial());
+        }
+    }
+
+    private static string GetFirstWord(string line)
+    {
+        try
+        {
+            return line[..line.IndexOf(' ')];
+        }
+        catch (ArgumentOutOfRangeException exception)
+        {
+            // There was no space
+            return line;
         }
     }
 
@@ -316,9 +329,9 @@ public static class ObjImporter
             {
                 continue;
             }
-
+            
             // Check what type of .obj command this line contains
-            var firstWord = line[..line.IndexOf(' ')];
+            var firstWord = GetFirstWord(line);
 
             // "o" command starts a new 3D object definition
             if (firstWord == "o")
