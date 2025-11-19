@@ -12,6 +12,15 @@ namespace GOATracer.Cameras
     // Check out the web version if you don't know why we are doing a specific thing or want to know more about the code.
     public class Camera
     {
+        /// <summary>
+        /// Far plane value
+        /// </summary>
+        private const float NearPlane = 0.01f;
+        /// <summary>
+        /// Near plane value
+        /// </summary>
+        private const float FarPlane = 100000000f;
+        
         // Those vectors are directions pointing outwards from the camera to define how it rotated.
         private Vector3 _front = -Vector3.UnitZ;
 
@@ -91,7 +100,7 @@ namespace GOATracer.Cameras
         // Get the projection matrix using the same method we have used up until this point
         public Matrix4 GetProjectionMatrix()
         {
-            return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, 0.01f, 100f);
+            return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, NearPlane, FarPlane);
         }
 
         // This function is going to update the direction vertices using some of the math learned in the web tutorials.
