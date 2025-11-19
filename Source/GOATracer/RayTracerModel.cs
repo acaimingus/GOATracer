@@ -1,10 +1,6 @@
 ﻿
 using System.Collections.ObjectModel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+
 
 namespace GOATracer
 {
@@ -18,8 +14,8 @@ namespace GOATracer
         }
 
         public RayTracerModel() { }
-      
-
+        
+        
         public double CameraPositionX { get; set; }
         public double CameraPositionY { get; set; }
         public double CameraPositionZ { get; set; }

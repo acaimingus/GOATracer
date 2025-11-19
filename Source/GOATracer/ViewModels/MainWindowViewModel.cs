@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,12 +17,12 @@ namespace GOATracer.ViewModels
     {
         [ObservableProperty]
         private RayTracerModel _rayTracerModel;
-        public ObservableCollection<Light> Lights => _rayTracerModel.Lights;
+        public ObservableCollection<LightViewModel> Lights { get; } = new();
+        public ObservableCollection<LightViewModel> EnabledLights { get; } = new ();
 
-        public ObservableCollection<Light> EnabledLights { get;} = new ObservableCollection<Light>();
-
-
-
+        [ObservableProperty]
+        private LightViewModel _selectedLight;
+        private int _lightCounter = 0;
 
         public IRelayCommand<string> Command { get; }
         public IRelayCommand<string> DeleteLightCommand { get; }
@@ -46,22 +47,36 @@ namespace GOATracer.ViewModels
 
             Command = new RelayCommand<string>(OnCommand);
             DeleteLightCommand = new RelayCommand<string>(DeleteLight);
-            
-            Lights.Add(new Light { name = "Light 1", isEnabled = false });
+
+            AddNewLight();
+            SelectedLight = Lights.First();
 
         }
+        private void AddNewLight() { 
+            _lightCounter++;
+            var newLightModel = new Light() { name = $"Light {_lightCounter}", isEnabled = true };
+            _rayTracerModel.Lights.Add(newLightModel);
 
-        public void SetLightEnabled(Light light, bool enabled)
+            var newLightVM = new LightViewModel(newLightModel, DeleteLight);
+            newLightVM.PropertyChanged += LightViewModel_PropertyChanged;
+            Lights.Add(newLightVM);
+            UpdateEnabledLights();
+        }
+
+        private void UpdateEnabledLights()
         {
-            light.isEnabled = enabled;
             EnabledLights.Clear();
-            foreach (var l in Lights.Where(l => l.isEnabled))
+            foreach (var l in Lights.Where(l => l.IsEnabled))
                 EnabledLights.Add(l);
-            if (enabled && !EnabledLights.Contains(light))
-                EnabledLights.Add(light);
-            else if (!enabled && EnabledLights.Contains(light))
-                EnabledLights.Remove(light);
         }
+
+        private void LightViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(LightViewModel.IsEnabled))
+                UpdateEnabledLights();
+        }
+
+
 
         public void OnCommand(string action)
         {
@@ -71,15 +86,18 @@ namespace GOATracer.ViewModels
                     var renderWindow = new RenderWindow();
                     renderWindow.Show();
                     break;
+
                 case "DeleteLight":
-                    if (SelectedLight != null)
+                    if (_selectedLight != null)
                     {
-                        Lights.Remove(SelectedLight);
+                        Lights.Remove(_selectedLight);
+                        _rayTracerModel.Lights.Remove(_selectedLight.Model);
+                        UpdateEnabledLights();
                     }
                     break;
+
                 case "AddLight":
-                    var newLight = new Light() { name = $"Light {Lights.Count + 1}", isEnabled = true };
-                    Lights.Add(newLight);
+                    AddNewLight();
                     break;
 
                 default:
@@ -91,20 +109,35 @@ namespace GOATracer.ViewModels
 
         private void DeleteLight(String lightName)
         {
-            var light = Lights.FirstOrDefault(l => l.name == lightName);
-            if (light != null)
-                Lights.Remove(light);
+            var lightVM = Lights.FirstOrDefault(l => l.Name == lightName);
+            if (lightVM != null)
+            {
+                bool wasSelected = SelectedLight == lightVM;
+                Lights.Remove(lightVM);
+                _rayTracerModel.Lights.Remove(lightVM.Model);
+                UpdateEnabledLights();
+
+                if (wasSelected)
+                {
+                    if (Lights.Count > 0)
+                    {
+                        SelectedLight = Lights.First();
+                    }
+                    else
+                    {
+                        SelectedLight = null;
+                    }
+                }
+
+            }
         }
-
-
-        [ObservableProperty]
-        private Light selectedLight;
 
         [ObservableProperty]
         private double cameraPositionX;
         partial void OnCameraPositionXChanged(double value)
         {
-            _rayTracerModel.CameraPositionX = value;
+            Debug.WriteLine($"[ViewModel] CameraPositionX changed to {value}");
+            _rayTracerModel.CameraPositionX = value; // should trigger model print
         }
 
         [ObservableProperty]
@@ -138,18 +171,6 @@ namespace GOATracer.ViewModels
         {
             _rayTracerModel.CameraRotationZ = value;
         }
-
-
-
-
-
-
-
-
-
-
-
-
     }
 }
 

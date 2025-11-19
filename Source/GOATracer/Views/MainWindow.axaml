@@ -40,7 +40,7 @@
                 <!-- Sidebar -->
                 <Grid>
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="2*" />
+                        <RowDefinition Height="1.5*" />
                         <RowDefinition Height="2*" />
                         <RowDefinition Height="*" />
                         <RowDefinition Height="40" />
@@ -61,8 +61,6 @@
                         <NumericUpDown Name="CameraRotationX" Grid.Row="4" Grid.Column="0" Margin="0 0 5 0" Value="{Binding CameraRotationX, Mode=TwoWay}" Increment="1"></NumericUpDown>
                         <NumericUpDown Name="CameraRotationY" Grid.Row="4" Grid.Column="1" Value="{Binding CameraRotationY, Mode=TwoWay}" Increment="1"></NumericUpDown>
                         <NumericUpDown Name="CameraRotationZ" Grid.Row="4" Grid.Column="2" Margin=" 5 0 0 0" Value="{Binding CameraRotationZ, Mode=TwoWay}" Increment="1"></NumericUpDown>
-                        <Button Grid.Row="5" Grid.Column="0" Content="Save Settings" Background="DarkRed" Foreground="White" VerticalAlignment="Center"/>
-                        <Button Grid.Row="5" Grid.Column="1" Content="Load Settings" Background="DarkRed" Foreground="White" VerticalAlignment="Center"/>
                     </Grid>
                     
                     <!-- Lightsettings grid -->
@@ -73,13 +71,15 @@
                         
 
                         <!-- Dropdown list of lights with delete button -->
-                        <ComboBox x:Name="LightsCombobox" VerticalAlignment="Center"  Grid.Row="1" Grid.Column="1" SelectedIndex="0" Grid.ColumnSpan="2" ItemsSource="{Binding Lights}" SelectedItem="{Binding SelectedLight}">
+                        <ComboBox x:Name="LightsCombobox" VerticalAlignment="Center"  Grid.Row="1" Grid.Column="1" SelectedIndex="0" Grid.ColumnSpan="2" ItemsSource="{Binding Lights}" SelectedItem="{Binding SelectedLight, Mode=TwoWay}">
                             <ComboBox.ItemTemplate>
 							<DataTemplate>
                                 <StackPanel Orientation="Horizontal">
-                                    <CheckBox VerticalAlignment="Center" IsChecked="{Binding isEnabled, Mode=TwoWay}" IsDefault="False" Checked="LightBoxChanged" Unchecked="LightBoxChanged"></CheckBox>
-                                    <Label Content="{Binding name}" VerticalAlignment="Center"></Label>
-                                    <Button  Content="Delete" Background="DarkRed" Foreground="White" VerticalAlignment="Center" Command="{Binding DataContext.DeleteLightCommand, ElementName=LightsCombobox}" CommandParameter ="{Binding name}"/>
+                                    <CheckBox VerticalAlignment="Center" IsChecked="{Binding IsEnabled, Mode=TwoWay}" IsDefault="False"></CheckBox>
+                                    
+                                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center"></TextBlock>
+                                    <!-- Delete button for each light -->
+                                    <Button  Content="Delete" Background="DarkRed" Foreground="White" VerticalAlignment="Center" Command="{Binding DeleteCommand}" CommandParameter ="{Binding Name}"/>
                                 </StackPanel>
                             </DataTemplate>
                             </ComboBox.ItemTemplate>
@@ -91,7 +91,7 @@
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
                                     <StackPanel Orientation="Horizontal" Margin="0,5,0,5">
-                                        <Label Content="{Binding name}" Width="100" VerticalAlignment="Center"/>
+                                        <TextBox Text="{Binding Name, Mode=TwoWay}" Width="100" VerticalAlignment="Center"/>
                                         <TextBox Width="60" Margin="5,0,0,0" Text="{Binding LightPositionX, Mode=TwoWay}" VerticalAlignment="Center"/>
                                         <TextBox Width="60" Margin="5,0,0,0" Text="{Binding LightPositionY, Mode=TwoWay}" VerticalAlignment="Center"/>
                                         <TextBox Width="60" Margin="5,0,0,0" Text="{Binding LightPositionZ, Mode=TwoWay}" VerticalAlignment="Center"/>
