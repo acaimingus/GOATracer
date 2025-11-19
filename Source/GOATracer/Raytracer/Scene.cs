@@ -19,7 +19,7 @@ namespace GOATracer.Raytracer
         public int ImageWidth { get; set; }
 
         // Main constructor with image dimensions
-        public Scene(List<Light> lights, Camera camera, ImportedSceneDescription sceneDescription, int imageHeight, int imageWidth)
+        public Scene(List<Light> lights, Camera camera, ImportedSceneDescription sceneDescription, int imageWidth, int imageHeight)
         {
             this.Lights = lights;
             this.Camera = camera;
