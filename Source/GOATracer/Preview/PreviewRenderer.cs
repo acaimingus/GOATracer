@@ -315,16 +315,22 @@ public class PreviewRenderer : OpenGlControlBase
 
         foreach (var (texturePath, vao) in _vaos)
         {
+            var hasTexture = false;
+            
             if (_loadedTextures.TryGetValue(texturePath, out var texture))
             {
                 texture.Use(TextureUnit.Texture0);
                 _lightingShader.SetInt("texture0", 0);
+                hasTexture = true;
             }
             else if (_loadedTextures.TryGetValue("default", out var defaultTexture))
             {
                 defaultTexture.Use(TextureUnit.Texture0);
                 _lightingShader.SetInt("texture0", 0);
+                hasTexture = true;
             }
+            
+            _lightingShader.SetInt("hasTexture", hasTexture ? 1 : 0);
             
             var material = _sceneDescription.Materials?
                 .FirstOrDefault(m => m.Value.DiffuseTexture == texturePath)

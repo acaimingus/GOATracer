@@ -29,6 +29,7 @@ in vec3 FragPos;
 in vec2 TexCoord;
 
 uniform sampler2D texture0;
+uniform int hasTexture;
 
 out vec4 FragColor;
 
@@ -41,11 +42,15 @@ void main()
     vec3 norm = normalize(Normal);
     vec3 viewDir = normalize(viewPos - FragPos);
 
+    vec3 texColor;
+    if (hasTexture == 1) {
+        texColor = texture(texture0, TexCoord).rgb;
+    } else {
+        texColor = vec3(1.0, 1.0, 1.0);
+    }
+    
     for(int i = 0; i < activeLightCount; i++)
     {
-        // Texture
-        vec3 texColor = texture(texture0, TexCoord).rgb;
-
         // Ambient
         ambient += lights[i].ambient * material.ambient;
 
