@@ -20,6 +20,8 @@ public static class ObjImporter
     /// <returns>ImportedSceneDescription containing all vertices, faces, and objects from the file</returns>
     public static ImportedSceneDescription ImportModel(string filePath)
     {
+        var unnamedCount = 0;
+        
         // Parse the .obj file and separate it into individual 3D objects
         var fileSegments = SplitFileByObjects(filePath);
 
@@ -76,6 +78,7 @@ public static class ObjImporter
                     
                     // Object command found
                     case "o":
+                    case "g":
                         // Extract the name for the object and set it in the object description
                         var nameOnly = line[(firstSpaceIndex + 1)..];
                         objectDescription.ObjectName = nameOnly;
@@ -105,7 +108,7 @@ public static class ObjImporter
                         var indicesOnly = line[(firstSpaceIndex + 1)..];
 
                         // Split into individual vertex references
-                        var splitStringIndices = indicesOnly.Split(' ');
+                        var splitStringIndices = indicesOnly.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                         
                         var indices = new List<FaceVertex>();
 
@@ -131,6 +134,11 @@ public static class ObjImporter
                 }
             }
             
+            if (string.IsNullOrWhiteSpace(objectDescription.ObjectName) && objectDescription.FacePoints.Count > 0)
+            {
+                objectDescription.ObjectName = $"Unnamed_Object_{unnamedCount++}";
+            }
+            
             // Check if the object actually is an object (it has a name)
             if (objectDescription.ObjectName != null)
             {
@@ -154,7 +162,7 @@ public static class ObjImporter
         var coordinatesOnly = line[(firstSpaceIndex + 1)..];
 
         // Split "x y z" into individual coordinate strings
-        var splitStringCoordinates = coordinatesOnly.Split(' ');
+        var splitStringCoordinates = coordinatesOnly.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
         // Convert coordinate strings to numbers
         var coordinates = new float[3];
@@ -220,7 +228,7 @@ public static class ObjImporter
                 // New material command found
                 case "newmtl":
                     // Unless it's the first time setting newmtl, add the imported material to the material list
-                    if (currentMaterial != null && !sceneDescription.Materials.ContainsKey(currentMaterial.MaterialName))
+                    if (currentMaterial != null && !sceneDescription.Materials!.ContainsKey(currentMaterial.MaterialName))
                     {
                         // Add the material with the imported properties until now
                         sceneDescription.Materials.Add(currentMaterial.MaterialName, currentMaterial.BuildObjectMaterial());
@@ -284,7 +292,7 @@ public static class ObjImporter
         }
         
         // Add the last material (if it is there)
-        if (currentMaterial != null && !sceneDescription.Materials.ContainsKey(currentMaterial.MaterialName))
+        if (currentMaterial != null && !sceneDescription.Materials!.ContainsKey(currentMaterial.MaterialName))
         {
             sceneDescription.Materials!.Add(currentMaterial!.MaterialName, currentMaterial.BuildObjectMaterial());
         }
@@ -334,7 +342,8 @@ public static class ObjImporter
             var firstWord = GetFirstWord(line);
 
             // "o" command starts a new 3D object definition
-            if (firstWord == "o")
+            // The example files given are incorrectly created and use "g" instead
+            if (firstWord is "o" or "g")
             {
                 objects.Add(currentFileSection);
 
@@ -350,7 +359,10 @@ public static class ObjImporter
         }
 
         // Don't forget to add the final object when we reach the end of the file
-        objects.Add(currentFileSection);
+        if (currentFileSection.Count > 0)
+        {        
+            objects.Add(currentFileSection);
+        }
 
         return objects;
     }
