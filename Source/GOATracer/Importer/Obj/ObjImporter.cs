@@ -283,8 +283,11 @@ public static class ObjImporter
             }
         }
         
-        // Add the last material too
-        sceneDescription.Materials.Add(currentMaterial!.MaterialName, currentMaterial.BuildObjectMaterial());
+        // Add the last material (if it is there)
+        if (currentMaterial != null)
+        {
+            sceneDescription.Materials!.Add(currentMaterial!.MaterialName, currentMaterial.BuildObjectMaterial());
+        }
     }
 
     /// <summary>

@@ -83,7 +83,7 @@ public class PreviewRenderer : OpenGlControlBase
             foreach (var face in objectDescription.FacePoints)
             {
                 var texturePath = "default";
-                if (sceneDescription.Materials != null && sceneDescription.Materials.TryGetValue(face.Material, out var material))
+                if (sceneDescription.Materials is { Count: > 0 } && sceneDescription.Materials.TryGetValue(face.Material, out var material))
                 {
                     if (!string.IsNullOrEmpty(material.DiffuseTexture))
                     {
