@@ -4,11 +4,12 @@ using System.Collections.ObjectModel;
 
 namespace GOATracer
 {
-   
 
 
+    // Model representing the Ray Tracer settings and scene description
     public class RayTracerModel 
     {
+        
         public RayTracerModel(ImportedSceneDescription importedSceneDescription) { 
             this._importedSceneDescription = importedSceneDescription;
         }

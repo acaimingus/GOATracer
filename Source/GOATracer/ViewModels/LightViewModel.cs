@@ -10,10 +10,13 @@ namespace GOATracer.ViewModels
 {
 
     // Light Wrapper so the light model doesnt need to implement INotifyPropertyChanged
-    public class LightViewModel : ObservableObject
+    public class LightViewModel : ViewModelBase
     {
+        // The underlying Light model
         private readonly Light _light;
+        // Command to delete this light, invokes the provided action with the light's name
         public IRelayCommand DeleteCommand { get; }
+
 
         public LightViewModel(Light light, Action<string> deleteAction)
         {
@@ -21,6 +24,7 @@ namespace GOATracer.ViewModels
             DeleteCommand = new RelayCommand(() => deleteAction?.Invoke(Name));
         }
 
+        // Properties that wrap the Light model's properties and notify on changes
         public string Name
         {
             get => _light.name;
@@ -85,6 +89,7 @@ namespace GOATracer.ViewModels
             }
         }
 
+        // Exposes the underlying Light model
         public Light Model => _light;
 
     }

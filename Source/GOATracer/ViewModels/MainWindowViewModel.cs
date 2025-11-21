@@ -15,11 +15,14 @@ namespace GOATracer.ViewModels
 {
     public partial class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
     {
+        // RayTracer Model as an interface to the ViewModel
         [ObservableProperty]
         private RayTracerModel _rayTracerModel;
+        
         public ObservableCollection<LightViewModel> Lights { get; } = new();
+        // Collection of enabled lights for rendering and displaying in UI
         public ObservableCollection<LightViewModel> EnabledLights { get; } = new ();
-
+        //selected Light in the combobox of the UI
         [ObservableProperty]
         private LightViewModel _selectedLight;
         private int _lightCounter = 0;
@@ -52,6 +55,8 @@ namespace GOATracer.ViewModels
             SelectedLight = Lights.First();
 
         }
+
+        // Adds a new light both to the model and the ViewModel
         private void AddNewLight() { 
             _lightCounter++;
             var newLightModel = new Light() { name = $"Light {_lightCounter}", isEnabled = true };
@@ -63,6 +68,7 @@ namespace GOATracer.ViewModels
             UpdateEnabledLights();
         }
 
+        // Updates the EnabledLights collection based on the IsEnabled property of each light
         private void UpdateEnabledLights()
         {
             EnabledLights.Clear();
@@ -70,6 +76,7 @@ namespace GOATracer.ViewModels
                 EnabledLights.Add(l);
         }
 
+        // Event handler for property changes in LightViewModel
         private void LightViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(LightViewModel.IsEnabled))
@@ -77,7 +84,7 @@ namespace GOATracer.ViewModels
         }
 
 
-
+        // Handles commands from the UI, one command based on the action string
         public void OnCommand(string action)
         {
             switch (action)
@@ -107,6 +114,7 @@ namespace GOATracer.ViewModels
             
         }
 
+        // Deletes a light by name from both the ViewModel and the Model, triggered by the each LightViewModel
         private void DeleteLight(String lightName)
         {
             var lightVM = Lights.FirstOrDefault(l => l.Name == lightName);
@@ -132,6 +140,8 @@ namespace GOATracer.ViewModels
             }
         }
 
+
+        // Camera position and rotation properties with change handlers to update the model
         [ObservableProperty]
         private double cameraPositionX;
         partial void OnCameraPositionXChanged(double value)

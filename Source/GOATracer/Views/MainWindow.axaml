@@ -10,20 +10,15 @@
         Background="#222222"
         Foreground="White">
     
-
+    <!-- Design-time data context -->
     <Design.DataContext>
         <viewmodel:MainWindowViewModel/>
     </Design.DataContext>
 
-    
-        
-         
-
-
     <Border Padding="10">
         
     <DockPanel>
-            <!-- Top toolbar -->
+            <!-- Top toolbar with FileChoose and TODO: add save and load scene settings buttons-->
             <Menu DockPanel.Dock="Top">
                 <Button x:Name="FileChooser" Grid.Column="0" Content="Choose file&#xE8A5;" Background="DarkRed" Foreground="White" VerticalAlignment="Center" Click="FileChooser_Click" />
                
@@ -37,7 +32,7 @@
                     <ColumnDefinition Width="3*" />
                 </Grid.ColumnDefinitions>
             
-                <!-- Sidebar -->
+                <!-- Sidebar with Camera and light settings -->
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="1.5*" />
@@ -103,7 +98,7 @@
                    
                 </Grid>
                 
-                <!-- Image Size Settings -->
+                <!-- Image Size Settings TODO: implement logic-->
                 <Grid Grid.Row="2" RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,*">
                     <Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="Image Size" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
     
