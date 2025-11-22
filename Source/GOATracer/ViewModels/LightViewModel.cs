@@ -17,14 +17,20 @@ namespace GOATracer.ViewModels
         // Command to delete this light, invokes the provided action with the light's name
         public IRelayCommand DeleteCommand { get; }
 
-
+        /// <summary>
+        /// Wraps a Light model and provides property change notifications.
+        /// </summary>
+        /// <param name="light">Underlying light instance to expose to the UI</param>
+        /// <param name="deleteAction">Command used to notify MainWindowViewModel that this Light should be removed by name</param>
         public LightViewModel(Light light, Action<string> deleteAction)
         {
             _light = light;
             DeleteCommand = new RelayCommand(() => deleteAction?.Invoke(Name));
         }
 
-        // Properties that wrap the Light model's properties and notify on changes
+        /// <summary>
+        /// Property to get or set the name of the light
+        /// </summary>
         public string Name
         {
             get => _light.name;
@@ -37,6 +43,9 @@ namespace GOATracer.ViewModels
             }
         }
 
+        /// <summary>
+        /// Property to get or set whether the light is enabled
+        /// </summary>
         public bool IsEnabled
         {
             get => _light.isEnabled;
@@ -50,6 +59,9 @@ namespace GOATracer.ViewModels
             }
         }
 
+        /// <summary>
+        /// Gets or sets the X-coordinate of the light's position
+        /// </summary>
         public double LightPositionX
         {
             get => _light.LightPositionX;
@@ -63,6 +75,9 @@ namespace GOATracer.ViewModels
             }
         }
 
+        /// <summary>
+        /// Gets or sets the Y-coordinate of the light's position
+        /// </summary>
         public double LightPositionY
         {
             get => _light.LightPositionY;
@@ -76,6 +91,9 @@ namespace GOATracer.ViewModels
             }
         }
 
+        /// <summary>
+        /// Gets or sets the Z-coordinate of the light's position
+        /// </summary>
         public double LightPositionZ
         {
             get => _light.LightPositionZ;
@@ -89,7 +107,9 @@ namespace GOATracer.ViewModels
             }
         }
 
-        // Exposes the underlying Light model
+        /// <summary>
+        /// Gets the light model associated with this instance.
+        /// </summary>
         public Light Model => _light;
 
     }
