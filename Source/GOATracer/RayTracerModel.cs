@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.ObjectModel;
+using GOATracer.Importer.Obj;
 
 
 namespace GOATracer
@@ -7,16 +8,17 @@ namespace GOATracer
 
 
     // Model representing the Ray Tracer settings and scene description
-    public class RayTracerModel 
+    public class RayTracerModel
     {
-        
-        public RayTracerModel(ImportedSceneDescription importedSceneDescription) { 
+
+        public RayTracerModel(ImportedSceneDescription importedSceneDescription)
+        {
             this._importedSceneDescription = importedSceneDescription;
         }
 
         public RayTracerModel() { }
-        
-        
+
+
         public double CameraPositionX { get; set; }
         public double CameraPositionY { get; set; }
         public double CameraPositionZ { get; set; }

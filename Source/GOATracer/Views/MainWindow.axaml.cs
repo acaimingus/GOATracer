@@ -5,7 +5,6 @@ using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using GOATracer.ViewModels;
-using GOATracer.Descriptions;
 using GOATracer.Importer.Obj;
 using System;
 using System.IO;
@@ -24,7 +23,39 @@ public partial class MainWindow : Window
     {
         this.Close();
     }
-    private void FileChooser_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    /// <summary>
+    /// Handler method for the Import option
+    /// </summary>
+    /// <param name="sender">Import option in the menu bar at the top</param>
+    /// <param name="eventData">Event data</param>
+    private async void ImportOptionClicked(object? sender, RoutedEventArgs eventData)
     {
+        // Get the parent window to enable file dialog access
+        // Source: https://docs.avaloniaui.net/docs/basics/user-interface/file-dialogs
+        var topLevel = TopLevel.GetTopLevel(this);
+
+        // Show file picker dialog to let user select a .obj file to import
+        // Source: https://docs.avaloniaui.net/docs/concepts/services/storage-provider/file-picker-options
+        var files = await topLevel!.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = "Open .obj File",
+            AllowMultiple = false,
+            FileTypeFilter =
+            [
+                new FilePickerFileType(".obj files")
+                {
+                    Patterns = ["*.obj"]
+                }
+            ]
+        });
+
+        if (files.Count >= 1)
+        {
+            // Extract the local file path from the selected file
+            var filePath = files[0].Path.LocalPath;
+            await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
+            // Import the .obj file and convert it into our scene data structure
+            var sceneDescription = ObjImporter.ImportModel(filePath);
+        }
     }
 }
