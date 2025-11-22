@@ -20,19 +20,35 @@ namespace GOATracer.ViewModels
     /// </summary>
     public partial class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
     {
-        // RayTracer Model as an interface to the ViewModel
+        /// <summary>
+        /// RayTracer Model as an interface to the ViewModel
+        /// </summary>
         [ObservableProperty]
         private RayTracerModel _rayTracerModel;
-        // Collection of all lights, hold the same items as in the RayTracerModel
+        /// <summary>
+        /// Collection of all lights, hold the same items as in the RayTracerModel
+        /// </summary>
         public ObservableCollection<LightViewModel> Lights { get; } = new();
-        // Collection of enabled lights for rendering and displaying in UI
+        /// <summary>
+        /// Collection of enabled lights for rendering and displaying in UI
+        /// </summary>
         public ObservableCollection<LightViewModel> EnabledLights { get; } = new();
-        //selected Light in the combobox of the UI
+        /// <summary>
+        /// Selected Light in the combobox of the UI
+        /// </summary>
         [ObservableProperty]
         private LightViewModel _selectedLight;
+        /// <summary>
+        /// Counter for the light amount
+        /// </summary>
         private int _lightCounter = 0;
-        // Commands for UI interactions, DeleteLightCommand is passed to LightViewModel instances
+        /// <summary>
+        /// Commands for UI interactions, DeleteLightCommand is passed to LightViewModel instances
+        /// </summary>
         public IRelayCommand<string> Command { get; }
+        /// <summary>
+        /// Command for Deleting the lights
+        /// </summary>
         public IRelayCommand<string> DeleteLightCommand { get; }
 
 
@@ -68,9 +84,9 @@ namespace GOATracer.ViewModels
         {
             _lightCounter++;
             var newLightModel = new Light() { name = $"Light {_lightCounter}", isEnabled = true };
-            _rayTracerModel.Lights.Add(newLightModel);
+            RayTracerModel.Lights.Add(newLightModel);
 
-            var newLightVM = new LightViewModel(newLightModel, DeleteLight);
+            var newLightVm = new LightViewModel(newLightModel, DeleteLight);
             newLightVM.PropertyChanged += LightViewModel_PropertyChanged;
             Lights.Add(newLightVM);
             UpdateEnabledLights();
@@ -103,7 +119,7 @@ namespace GOATracer.ViewModels
         /// "Render": Opens a new render window.
         /// "DeleteLight": Deletes the currently selected light, if one is selected.
         /// "AddLight": Adds a new light to the scene.</param>
-        public void OnCommand(string action)
+        private void OnCommand(string action)
         {
             switch (action)
             {
@@ -127,14 +143,14 @@ namespace GOATracer.ViewModels
         /// Deletion executed by name, not by reference.
         /// </summary>
         /// <param name="lightName">The name of the light to delete</param>
-        private void DeleteLight(String lightName)
+        private void DeleteLight(string lightName)
         {
             var lightVM = Lights.FirstOrDefault(l => l.Name == lightName);
             if (lightVM != null)
             {
-                bool wasSelected = SelectedLight == lightVM;
+                var wasSelected = SelectedLight == lightVM;
                 Lights.Remove(lightVM);
-                _rayTracerModel.Lights.Remove(lightVM.Model);
+                RayTracerModel.Lights.Remove(lightVM.Model);
                 UpdateEnabledLights();
 
                 if (wasSelected)
@@ -157,7 +173,7 @@ namespace GOATracer.ViewModels
         /// Property for the X position of the camera in the scene.
         /// </summary>
         [ObservableProperty]
-        private double cameraPositionX;
+        private double _cameraPositionX;
         partial void OnCameraPositionXChanged(double value)
         {
             _rayTracerModel.CameraPositionX = value;
@@ -167,7 +183,7 @@ namespace GOATracer.ViewModels
         /// Property for the Y position of the camera in the scene.
         /// </summary>
         [ObservableProperty]
-        private double cameraPositionY;
+        private double _cameraPositionY;
         partial void OnCameraPositionYChanged(double value)
         {
             _rayTracerModel.CameraPositionY = value;
@@ -177,7 +193,7 @@ namespace GOATracer.ViewModels
         /// Property for the Z position of the camera in the scene.
         /// </summary>
         [ObservableProperty]
-        private double cameraPositionZ;
+        private double _cameraPositionZ;
         partial void OnCameraPositionZChanged(double value)
         {
             _rayTracerModel.CameraPositionZ = value;
@@ -186,7 +202,7 @@ namespace GOATracer.ViewModels
         /// Property for the X rotation of the camera in the scene.
         /// </summary>
         [ObservableProperty]
-        private double cameraRotationX;
+        private double _cameraRotationX;
         partial void OnCameraRotationXChanged(double value)
         {
             _rayTracerModel.CameraRotationX = value;
@@ -195,7 +211,7 @@ namespace GOATracer.ViewModels
         /// PRoperty for the Y rotation of the camera in the scene.
         /// </summary>
         [ObservableProperty]
-        private double cameraRotationY;
+        private double _cameraRotationY;
         partial void OnCameraRotationYChanged(double value)
         {
             _rayTracerModel.CameraRotationY = value;
@@ -204,7 +220,7 @@ namespace GOATracer.ViewModels
         /// Property for the Z rotation of the camera in the scene.
         /// </summary>
         [ObservableProperty]
-        private double cameraRotationZ;
+        private double _cameraRotationZ;
         partial void OnCameraRotationZChanged(double value)
         {
             _rayTracerModel.CameraRotationZ = value;

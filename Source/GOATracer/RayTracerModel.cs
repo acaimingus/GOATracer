@@ -7,7 +7,9 @@ namespace GOATracer
 {
 
 
-    // Model representing the Ray Tracer settings and scene description
+    /// <summary>
+    /// Model representing the Ray Tracer settings and scene description
+    /// </summary>
     public class RayTracerModel
     {
 
@@ -30,6 +32,8 @@ namespace GOATracer
         public int ImageWidth { get; set; }
         public int ImageHeight { get; set; }
         public ImportedSceneDescription _importedSceneDescription;
-        public ObservableCollection<Light> Lights { get; } = new ObservableCollection<Light>();
+        private readonly ObservableCollection<Light> _lights = new ObservableCollection<Light>();
+
+        public ObservableCollection<Light> Lights => _lights;
     }
 }

@@ -9,12 +9,18 @@ using System.Threading.Tasks;
 namespace GOATracer.ViewModels
 {
 
-    // Light Wrapper so the light model doesnt need to implement INotifyPropertyChanged
+    /// <summary>
+    /// Light Wrapper so the light model doesn't need to implement INotifyPropertyChanged
+    /// </summary>
     public class LightViewModel : ViewModelBase
     {
-        // The underlying Light model
+        /// <summary>
+        /// The underlying Light model
+        /// </summary>
         private readonly Light _light;
-        // Command to delete this light, invokes the provided action with the light's name
+        /// <summary>
+        /// Command to delete this light, invokes the provided action with the light's name
+        /// </summary>
         public IRelayCommand DeleteCommand { get; }
 
         /// <summary>
