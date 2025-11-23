@@ -1,14 +1,8 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System;
 using CommunityToolkit.Mvvm.Input;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GOATracer.ViewModels
 {
-
     /// <summary>
     /// Light Wrapper so the light model doesn't need to implement INotifyPropertyChanged
     /// </summary>
@@ -22,6 +16,11 @@ namespace GOATracer.ViewModels
         /// Command to delete this light, invokes the provided action with the light's name
         /// </summary>
         public IRelayCommand DeleteCommand { get; }
+
+        /// <summary>
+        /// Gets the light model associated with this instance.
+        /// </summary>
+        public Light Model => _light;
 
         /// <summary>
         /// Wraps a Light model and provides property change notifications.
@@ -39,11 +38,23 @@ namespace GOATracer.ViewModels
         /// </summary>
         public string Name
         {
-            get => _light.name;
+            get => _light.Name;
             set { 
-                if (_light.name != value)
-                {
-                    _light.name = value;
+                if (_light.Name != value) {
+
+                    _light.Name = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public int Id
+        {
+            get => _light.Id;
+            set
+            {
+                if (_light.Id != value) {
+                    _light.Id = value;
                     OnPropertyChanged();
                 }
             }
@@ -54,12 +65,12 @@ namespace GOATracer.ViewModels
         /// </summary>
         public bool IsEnabled
         {
-            get => _light.isEnabled;
+            get => _light.IsEnabled;
             set
             {
-                if (_light.isEnabled != value)
-                {
-                    _light.isEnabled = value;
+                if (_light.IsEnabled != value) {
+
+                    _light.IsEnabled = value;
                     OnPropertyChanged();
                 }
             }
@@ -73,8 +84,8 @@ namespace GOATracer.ViewModels
             get => _light.LightPositionX;
             set
             {
-                if (_light.LightPositionX != value)
-                {
+                if (_light.LightPositionX != value) {
+
                     _light.LightPositionX = value;
                     OnPropertyChanged();
                 }
@@ -89,8 +100,8 @@ namespace GOATracer.ViewModels
             get => _light.LightPositionY;
             set
             {
-                if (_light.LightPositionY != value)
-                {
+                if (_light.LightPositionY != value) {
+
                     _light.LightPositionY = value;
                     OnPropertyChanged();
                 }
@@ -105,18 +116,15 @@ namespace GOATracer.ViewModels
             get => _light.LightPositionZ;
             set
             {
-                if (_light.LightPositionZ != value)
-                {
+                if (_light.LightPositionZ != value) {
+
                     _light.LightPositionZ = value;
                     OnPropertyChanged();
                 }
             }
         }
 
-        /// <summary>
-        /// Gets the light model associated with this instance.
-        /// </summary>
-        public Light Model => _light;
+
 
     }
 }

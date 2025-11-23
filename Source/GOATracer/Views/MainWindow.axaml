@@ -14,16 +14,13 @@
 	<Design.DataContext>
 		<viewmodel:MainWindowViewModel/>
 	</Design.DataContext>
-
 	<Border Padding="10">
 
 		<DockPanel>
 			<!-- Top toolbar with FileChoose and TODO: add save and load scene settings buttons-->
 			<Menu DockPanel.Dock="Top">
 				<Button x:Name="FileChooser" Grid.Column="0" Content="Choose file&#xE8A5;" Background="DarkRed" Foreground="White" VerticalAlignment="Center" Click="ImportOptionClicked" />
-
 			</Menu>
-
 
 			<!-- Main window -->
 			<Grid ShowGridLines="True">

@@ -1,15 +1,9 @@
-﻿using Avalonia.Interactivity;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using GOATracer.Views;
-using System;
-using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GOATracer.ViewModels
 {
@@ -21,11 +15,6 @@ namespace GOATracer.ViewModels
     public partial class MainWindowViewModel : ViewModelBase, INotifyPropertyChanged
     {
         /// <summary>
-        /// RayTracer Model as an interface to the ViewModel
-        /// </summary>
-        [ObservableProperty]
-        private RayTracerModel _rayTracerModel;
-        /// <summary>
         /// Collection of all lights, hold the same items as in the RayTracerModel
         /// </summary>
         public ObservableCollection<LightViewModel> Lights { get; } = new();
@@ -34,15 +23,6 @@ namespace GOATracer.ViewModels
         /// </summary>
         public ObservableCollection<LightViewModel> EnabledLights { get; } = new();
         /// <summary>
-        /// Selected Light in the combobox of the UI
-        /// </summary>
-        [ObservableProperty]
-        private LightViewModel _selectedLight;
-        /// <summary>
-        /// Counter for the light amount
-        /// </summary>
-        private int _lightCounter = 0;
-        /// <summary>
         /// Commands for UI interactions, DeleteLightCommand is passed to LightViewModel instances
         /// </summary>
         public IRelayCommand<string> Command { get; }
@@ -50,124 +30,20 @@ namespace GOATracer.ViewModels
         /// Command for Deleting the lights
         /// </summary>
         public IRelayCommand<string> DeleteLightCommand { get; }
-
-
-        public MainWindowViewModel()
-        {
-            // Initialize RayTracerModel with default camera settings
-            _rayTracerModel = new RayTracerModel()
-            {
-                CameraPositionX = 1,
-                CameraPositionY = 1,
-                CameraPositionZ = 1,
-                CameraRotationX = 1,
-                CameraRotationY = 1,
-                CameraRotationZ = 1,
-                ImageWidth = 800,
-                ImageHeight = 600
-            };
-
-
-            // Initialize commands
-            Command = new RelayCommand<string>(OnCommand);
-            DeleteLightCommand = new RelayCommand<string>(DeleteLight);
-
-            AddNewLight();
-            SelectedLight = Lights.First();
-
-        }
-
         /// <summary>
-        /// Adds a new light to the scene and updates the collection of enabled lights.
+        /// Selected Light in the combobox of the UI
         /// </summary>
-        private void AddNewLight()
-        {
-            _lightCounter++;
-            var newLightModel = new Light() { name = $"Light {_lightCounter}", isEnabled = true };
-            RayTracerModel.Lights.Add(newLightModel);
-
-            var newLightVm = new LightViewModel(newLightModel, DeleteLight);
-            newLightVM.PropertyChanged += LightViewModel_PropertyChanged;
-            Lights.Add(newLightVM);
-            UpdateEnabledLights();
-        }
-
+        [ObservableProperty]
+        private LightViewModel _selectedLight;
         /// <summary>
-        /// Updates the collection of enabled lights by clearing the current list and adding all lights that are
-        /// enabled. This ensures that the EnabledLights collection always reflects the current state of the Lights collection.
-        /// Also important to keep the enabled lights in sync for the UI and rendering
+        /// RayTracer Model as an interface to the ViewModel
         /// </summary>
-        private void UpdateEnabledLights()
-        {
-            EnabledLights.Clear();
-            foreach (var l in Lights.Where(l => l.IsEnabled))
-                EnabledLights.Add(l);
-        }
-
-        // Event handler for property changes in LightViewModel
-        private void LightViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == nameof(LightViewModel.IsEnabled))
-                UpdateEnabledLights();
-        }
-
-
+        [ObservableProperty]
+        private RayTracerModel _rayTracerModel;
         /// <summary>
-        /// Executes the specified command based on the provided action string.
+        /// Counter for the light amount
         /// </summary>
-        /// <param name="action">A string representing the command to execute. Supported values are: 
-        /// "Render": Opens a new render window.
-        /// "DeleteLight": Deletes the currently selected light, if one is selected.
-        /// "AddLight": Adds a new light to the scene.</param>
-        private void OnCommand(string action)
-        {
-            switch (action)
-            {
-                case "Render":
-                    var renderWindow = new RenderWindow();
-                    renderWindow.Show();
-                    break;
-                case "AddLight":
-                    AddNewLight();
-                    break;
-
-                default:
-                    break;
-            }
-
-
-        }
-
-        /// <summary>
-        /// Deletes a light with the specified name from the collection of lights in both the ViewModel and the Model.
-        /// Deletion executed by name, not by reference.
-        /// </summary>
-        /// <param name="lightName">The name of the light to delete</param>
-        private void DeleteLight(string lightName)
-        {
-            var lightVM = Lights.FirstOrDefault(l => l.Name == lightName);
-            if (lightVM != null)
-            {
-                var wasSelected = SelectedLight == lightVM;
-                Lights.Remove(lightVM);
-                RayTracerModel.Lights.Remove(lightVM.Model);
-                UpdateEnabledLights();
-
-                if (wasSelected)
-                {
-                    if (Lights.Count > 0)
-                    {
-                        SelectedLight = Lights.First();
-                    }
-                    else
-                    {
-                        SelectedLight = null;
-                    }
-                }
-
-            }
-        }
-
+        private int _lightCounter = 0;
 
         /// <summary>
         /// Property for the X position of the camera in the scene.
@@ -225,6 +101,129 @@ namespace GOATracer.ViewModels
         {
             _rayTracerModel.CameraRotationZ = value;
         }
+
+        public MainWindowViewModel()
+        {
+            // Initialize RayTracerModel with default camera settings
+            _rayTracerModel = new RayTracerModel()
+            {
+                CameraPositionX = 1,
+                CameraPositionY = 1,
+                CameraPositionZ = 1,
+                CameraRotationX = 1,
+                CameraRotationY = 1,
+                CameraRotationZ = 1,
+                ImageWidth = 800,
+                ImageHeight = 600
+            };
+
+
+            // Initialize commands
+            Command = new RelayCommand<string>(OnCommand);
+            DeleteLightCommand = new RelayCommand<string>(DeleteLight);
+
+            AddNewLight();
+            SelectedLight = Lights.First();
+
+        }
+
+        /// <summary>
+        /// Adds a new light to the scene and updates the collection of enabled lights.
+        /// </summary>
+        private void AddNewLight()
+        {
+            _lightCounter++;
+            var newLightModel = new Light() { Name = $"Light {_lightCounter}", IsEnabled = true };
+            RayTracerModel.Lights.Add(newLightModel);
+
+            var newLightVm = new LightViewModel(newLightModel, DeleteLight);
+            newLightVm.PropertyChanged += LightViewModel_PropertyChanged;
+            Lights.Add(newLightVm);
+            UpdateEnabledLights();
+        }
+
+        /// <summary>
+        /// Updates the collection of enabled lights by clearing the current list and adding all lights that are
+        /// enabled. This ensures that the EnabledLights collection always reflects the current state of the Lights collection.
+        /// Also important to keep the enabled lights in sync for the UI and rendering
+        /// </summary>
+        private void UpdateEnabledLights()
+        {
+            EnabledLights.Clear();
+            foreach (var l in Lights.Where(l => l.IsEnabled)) {
+                EnabledLights.Add(l);
+            }
+        }
+
+        // Event handler for property changes in LightViewModel
+        private void LightViewModel_PropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName == nameof(LightViewModel.IsEnabled)) {
+
+                UpdateEnabledLights();
+            }
+        }
+
+
+        /// <summary>
+        /// Executes the specified command based on the provided action string.
+        /// </summary>
+        /// <param name="action">A string representing the command to execute. Supported values are: 
+        /// "Render": Opens a new render window.
+        /// "DeleteLight": Deletes the currently selected light, if one is selected.
+        /// "AddLight": Adds a new light to the scene.</param>
+        private void OnCommand(string action)
+        {
+            switch (action)
+            {
+                case "Render":
+                    var renderWindow = new RenderWindow();
+                    renderWindow.Show();
+                    break;
+                case "AddLight":
+                    AddNewLight();
+                    break;
+
+                default:
+                    break;
+            }
+
+
+        }
+
+        /// <summary>
+        /// Deletes a light with the specified name from the collection of lights in both the ViewModel and the Model.
+        /// Deletion executed by name, not by reference.
+        /// </summary>
+        /// <param name="lightName">The name of the light to delete</param>
+        private void DeleteLight(string lightName)
+        {
+            var lightVm = Lights.FirstOrDefault(l => l.Name == lightName);
+            if (lightVm != null)
+            {
+
+                var wasSelected = SelectedLight == lightVm;
+                Lights.Remove(lightVm);
+                RayTracerModel.Lights.Remove(lightVm.Model);
+                UpdateEnabledLights();
+
+                if (wasSelected)
+                {
+
+                    if (Lights.Count > 0)
+                    {
+
+                        SelectedLight = Lights.First();
+                    }
+                    else
+                    {
+                        SelectedLight = null;
+                    }
+                }
+
+            }
+        }
+
     }
 }
 
