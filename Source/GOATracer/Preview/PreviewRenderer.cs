@@ -2,52 +2,29 @@ using Avalonia;
 using Avalonia.Input;
 using Avalonia.OpenGL;
 using Avalonia.OpenGL.Controls;
-using GOATracer.Cameras;
 using GOATracer.Importer.Obj;
 using GOATracer.Lights;
 using GOATracer.MVC;
 using OpenTK.Graphics.ES30;
 using OpenTK.Mathematics;
-using StbImageSharp;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace GOATracer.Preview;
 
 public class PreviewRenderer : OpenGlControlBase
 {
-    private Dictionary<string, List<float>> _verticesByTexture = new();
-    private Dictionary<string, int> _vaos = new();
-    private Dictionary<string, int> _vbos = new();
-    private Dictionary<string, int> _vertexCounts = new();
-    private List<Vector3> _lights;
-    private readonly float[] _lampVertices =
-    {
-        -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f,  0.5f, -0.5f, 0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f, -0.5f,
-        -0.5f, -0.5f,  0.5f, 0.5f, -0.5f,  0.5f, 0.5f,  0.5f,  0.5f, 0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f, -0.5f,  0.5f,
-        -0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f, -0.5f,  0.5f, -0.5f,  0.5f,  0.5f,
-        0.5f,  0.5f,  0.5f, 0.5f,  0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f,  0.5f, 0.5f,  0.5f,  0.5f,
-        -0.5f, -0.5f, -0.5f, 0.5f, -0.5f, -0.5f, 0.5f, -0.5f,  0.5f, 0.5f, -0.5f,  0.5f, -0.5f, -0.5f,  0.5f, -0.5f, -0.5f, -0.5f,
-        -0.5f,  0.5f, -0.5f, 0.5f,  0.5f, -0.5f, 0.5f,  0.5f,  0.5f, 0.5f,  0.5f,  0.5f, -0.5f,  0.5f,  0.5f, -0.5f,  0.5f, -0.5f
-    };
-    private int _lampBufferObject;
-    private int _vaoLamp;
+    
+    private const int MaxLights = 128;
+    private bool _glLoaded;
     private Shader _lampShader;
     private Shader _lightingShader;
-    private Camera _camera;
-    private readonly CameraSettingsBinding _cameraSettings;
-    private bool _firstMove;
-    private Vector2 _lastPos;
-    private bool _glLoaded;
-    private float _cameraSpeed;
-    private Dictionary<string,Texture> _loadedTextures = new();
-    private readonly ImportedSceneDescription _sceneDescription;
 
-    private const int MaxLights = 128;
-    
-    private readonly HashSet<Key> _keys = [];
+    private readonly ImportedSceneDescription _sceneDescription;
+    private readonly PreviewScene _previewScene;
+    private readonly InputHandler _inputHandler;
+    private readonly RenderResourceManager _renderResourceManager = new();
 
     /// <summary>
     /// BindingsContext, so OpenTK loads GL methods over Avalonia
@@ -64,14 +41,10 @@ public class PreviewRenderer : OpenGlControlBase
     /// </summary>
     public PreviewRenderer(ImportedSceneDescription sceneDescription, List<Light> lights, CameraSettingsBinding cameraSettings)
     {
-        _firstMove = true;
-        _cameraSpeed = 0.5f;
-        this._sceneDescription = sceneDescription;
-
-        UpdateLights(lights);
-
-        _cameraSettings = cameraSettings;
-        _cameraSettings.UiCameraUpdate += OnCameraSettingsChangedFromUi;
+        _sceneDescription = sceneDescription;
+        _previewScene = new PreviewScene(lights, cameraSettings);
+        _inputHandler = new InputHandler(_previewScene);
+        var verticesByTexture = _renderResourceManager.GetVerticesByTexture();
 
         // Make sure we can get keyboard focus
         this.Focusable = true;
@@ -91,12 +64,12 @@ public class PreviewRenderer : OpenGlControlBase
                     }
                 }
 
-                if (!_verticesByTexture.ContainsKey(texturePath))
+                if (!verticesByTexture.ContainsKey(texturePath))
                 {
-                    _verticesByTexture[texturePath] = new List<float>();
+                    verticesByTexture[texturePath] = new List<float>();
                 }
 
-                var currentVertexList = _verticesByTexture[texturePath];
+                var currentVertexList = verticesByTexture[texturePath];
                 
                 // OBJ-faces can have more than 3 points => triangulation needed
                 // Simple triangulation
@@ -155,27 +128,6 @@ public class PreviewRenderer : OpenGlControlBase
         }
     }
 
-    public void UpdateLights(List<Light> lights)
-    {
-        _lights = new List<Vector3>();
-
-        if (lights.Count > 0)
-        {
-            // Convert each light from the light object list to a 3d point and save it in the local light list
-            foreach (var vector in lights.Select(light => new Vector3(light.X, light.Y, light.Z)))
-            {
-                _lights.Add(vector);
-            }
-        }
-    }
-
-    private void OnCameraSettingsChangedFromUi()
-    {
-        _camera.Position = new Vector3(_cameraSettings.PositionX, _cameraSettings.PositionY, _cameraSettings.PositionZ);
-        _camera.Pitch = _cameraSettings.RotationX;
-        _camera.Yaw = _cameraSettings.RotationY;
-    }
-
     protected override void OnOpenGlInit(GlInterface gl)
     {
         base.OnOpenGlInit(gl);
@@ -188,15 +140,17 @@ public class PreviewRenderer : OpenGlControlBase
         // This is gray
         GL.ClearColor(0.13f, 0.14f, 0.15f, 1.0f);
 
-        LoadTextures(_sceneDescription);
+        _renderResourceManager.LoadTextures(_sceneDescription);
 
         // To see which triangles are in front of others
         GL.Enable(EnableCap.DepthTest);
-        
-        _lightingShader = new Shader("Shaders/shader.vert", "Shaders/lighting.frag");
-        _lampShader = new Shader("Shaders/shader.vert", "Shaders/shader.frag");
 
-        foreach (var (texturePath, vertices) in  _verticesByTexture)
+        _lightingShader = _renderResourceManager.LoadShader("Shaders/shader.vert", "Shaders/lighting.frag");
+        _lampShader = _renderResourceManager.LoadShader("Shaders/shader.vert", "Shaders/shader.frag");
+
+        var verticesByTexture = _renderResourceManager.GetVerticesByTexture();
+
+        foreach (var (texturePath, vertices) in  verticesByTexture)
         {
             var vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
@@ -221,51 +175,35 @@ public class PreviewRenderer : OpenGlControlBase
             GL.EnableVertexAttribArray(normalLocation);
             GL.VertexAttribPointer(normalLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 5 * sizeof(float));
             
-            _vbos[texturePath] = vbo;
-            _vaos[texturePath] = vao;
-            _vertexCounts[texturePath] = vertexArray.Length / 8;
+            _renderResourceManager.SetVao(texturePath, vao);
+            _renderResourceManager.SetVbo(texturePath, vbo);
+            _renderResourceManager.SetVertexCount(texturePath, vertexArray.Length / 8);
+
+            // _vbos[texturePath] = vbo;
+            // _vaos[texturePath] = vao;
+            // _vertexCounts[texturePath] = vertexArray.Length / 8;
         }
 
         // Create a SEPARATE VBO for the lamp objects
-        _lampBufferObject = GL.GenBuffer();
-        GL.BindBuffer(BufferTarget.ArrayBuffer, _lampBufferObject);
-        GL.BufferData(BufferTarget.ArrayBuffer, _lampVertices.Length * sizeof(float), _lampVertices, BufferUsageHint.StaticDraw);
+        _renderResourceManager.LampBufferObject = GL.GenBuffer();
+        float[] lampVertices = _renderResourceManager.LampVertices;
+
+        GL.BindBuffer(BufferTarget.ArrayBuffer, _renderResourceManager.LampBufferObject);
+        GL.BufferData(BufferTarget.ArrayBuffer, lampVertices.Length * sizeof(float), lampVertices, BufferUsageHint.StaticDraw);
         
         {
-            _vaoLamp = GL.GenVertexArray();
-            GL.BindVertexArray(_vaoLamp);
-            GL.BindBuffer(BufferTarget.ArrayBuffer, _lampBufferObject);
+            int vaoLamp = GL.GenVertexArray();
+            _renderResourceManager.VaoLamp = vaoLamp;
+            GL.BindVertexArray(vaoLamp);
+            GL.BindBuffer(BufferTarget.ArrayBuffer, _renderResourceManager.LampBufferObject);
 
             var positionLocation = _lampShader.GetAttribLocation("aPos");
             GL.EnableVertexAttribArray(positionLocation);
             GL.VertexAttribPointer(positionLocation, 3, VertexAttribPointerType.Float, false, 3 * sizeof(float), 0);
         }
-
-        // set camera on position (0,0,3) and aspect ratio according to the control size
-        _camera = new Camera(Vector3.UnitZ * 3, (float)(Bounds.Width / Bounds.Height));
         
-        _cameraSettings.UpdatePosition(_camera.Position.X, _camera.Position.Y, _camera.Position.Z);
-        _cameraSettings.UpdateRotation(_camera.Pitch, _camera.Yaw, 0f);
-    }
-
-    private void LoadTextures(ImportedSceneDescription? sceneDescription)
-    {
-        if (sceneDescription != null)
-        {
-            // go through Materials Dictionary and get DiffuseTexture (should be a path to image file)
-            foreach (var material in sceneDescription.Materials!)
-            {
-                if (!string.IsNullOrEmpty(material.Value.DiffuseTexture))
-                {
-                    // Load texture images
-                    var imagePath = material.Value.DiffuseTexture;
-                    if (!_loadedTextures.ContainsKey(imagePath))
-                    {
-                        _loadedTextures[imagePath] = Texture.LoadFromFile(imagePath);
-                    }
-                }
-            }
-        }
+        _previewScene.SetupCamera(Bounds.Size);
+        _previewScene.UpdateCameraPositionToBinding();
     }
 
     protected override void OnOpenGlRender(GlInterface gl, int fb)
@@ -273,8 +211,11 @@ public class PreviewRenderer : OpenGlControlBase
         // check if GL is loaded
         if (!_glLoaded) return;
 
+        var _camera = _previewScene.GetCamera();
+        var _lights = _previewScene.GetLights();
+
         // Handle controls in the viewport
-        HandleKeyboard();
+        _inputHandler.HandleKeyboard();
         
         // Add a scaling factor for displays which use it
         var scalingFactor = this.VisualRoot.RenderScaling;
@@ -313,17 +254,20 @@ public class PreviewRenderer : OpenGlControlBase
             _lightingShader.SetVector3($"lights[{i}].specular", new Vector3(1.0f, 1.0f, 1.0f));
         }
 
-        foreach (var (texturePath, vao) in _vaos)
+        var loadedTextures = _renderResourceManager.GetLoadedTextures();
+        var vaos = _renderResourceManager.GetVao();
+
+        foreach (var (texturePath, vao) in vaos)
         {
             var hasTexture = false;
             
-            if (_loadedTextures.TryGetValue(texturePath, out var texture))
+            if (loadedTextures.TryGetValue(texturePath, out var texture))
             {
                 texture.Use(TextureUnit.Texture0);
                 _lightingShader.SetInt("texture0", 0);
                 hasTexture = true;
             }
-            else if (_loadedTextures.TryGetValue("default", out var defaultTexture))
+            else if (loadedTextures.TryGetValue("default", out var defaultTexture))
             {
                 defaultTexture.Use(TextureUnit.Texture0);
                 _lightingShader.SetInt("texture0", 0);
@@ -374,10 +318,10 @@ public class PreviewRenderer : OpenGlControlBase
             
             _lightingShader.SetMatrix4("model", Matrix4.Identity);
             GL.BindVertexArray(vao);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, _vertexCounts[texturePath]);
+            GL.DrawArrays(PrimitiveType.Triangles, 0,  _renderResourceManager.GetVertexCount(texturePath));
         }
         
-        GL.BindVertexArray(_vaoLamp);
+        GL.BindVertexArray(_renderResourceManager.GetVaoLamp());
         
         _lampShader.SetMatrix4("view", _camera.GetViewMatrix());
         _lampShader.SetMatrix4("projection", _camera.GetProjectionMatrix());
@@ -389,86 +333,15 @@ public class PreviewRenderer : OpenGlControlBase
             lampMatrix *= Matrix4.CreateScale(0.2f);
             lampMatrix *= Matrix4.CreateTranslation(light);
             _lampShader.SetMatrix4("model", lampMatrix);
-            GL.DrawArrays(PrimitiveType.Triangles, 0, _lampVertices.Length / 3);
+            GL.DrawArrays(PrimitiveType.Triangles, 0, _renderResourceManager.LampVertices.Length / 3);
         }
         
         RequestNextFrameRendering();
     }
 
-    /// <summary>
-    /// Handles keyboard input for camera movement.
-    /// Source: https://github.com/opentk/LearnOpenTK/blob/master/Chapter2/2-BasicLighting/Window.cs
-    /// </summary>
-    private void HandleKeyboard()
+    public void UpdateLights(List<Light> lights)
     {
-        // Boolean specifying if the camera has been moved
-        var cameraMoved = false;
-        
-        // Slow down camera speed
-        if (_keys.Contains(Key.O))
-        {
-            _cameraSpeed -= 0.01f;
-            
-            // Bound the minimum speed of the camera to 0.1f
-            if (_cameraSpeed < 0.1f)
-            {
-                _cameraSpeed = 0.1f;
-            }
-        }
-
-        // Speed up camera speed
-        if (_keys.Contains(Key.P))
-        {
-            _cameraSpeed += 0.01f;
-        }
-
-        // Move camera forward
-        if (_keys.Contains(Key.W))
-        {
-            _camera.Position += _camera.Front * _cameraSpeed;
-            cameraMoved = true;
-        }
-
-        // Move camera backward
-        if (_keys.Contains(Key.S))
-        {
-            _camera.Position -= _camera.Front * _cameraSpeed;
-            cameraMoved = true;
-        }
-
-        // Move camera to the left
-        if (_keys.Contains(Key.A))
-        {
-            _camera.Position -= _camera.Right * _cameraSpeed;
-            cameraMoved = true;
-        }
-
-        // Move camera to the right
-        if (_keys.Contains(Key.D))
-        {
-            _camera.Position += _camera.Right * _cameraSpeed;
-            cameraMoved = true;
-        }
-
-        // Raise the camera
-        if (_keys.Contains(Key.Space))
-        {
-            _camera.Position += _camera.Up * _cameraSpeed;
-            cameraMoved = true;
-        }
-
-        // Lower the camera
-        if (_keys.Contains(Key.LeftShift) || _keys.Contains(Key.RightShift))
-        {
-            _camera.Position -= _camera.Up * _cameraSpeed;
-            cameraMoved = true;
-        }
-        
-        // Check if the camera has been moved and update the binding if it has
-        if (cameraMoved)
-        {
-            _cameraSettings.UpdatePosition(_camera.Position.X, _camera.Position.Y, _camera.Position.Z);
-        }
+        _previewScene.UpdateLights(lights);
     }
 
     /// <summary>
@@ -482,66 +355,38 @@ public class PreviewRenderer : OpenGlControlBase
     }
 
     /// <summary>
-    /// Event handler for key presses
+    /// Event handler for key presses. Delegates to InputHandler.
     /// </summary>
     /// <param name="eventData">Event data</param>
     protected override void OnKeyDown(KeyEventArgs eventData)
     {
-        base.OnKeyDown(eventData);
-        _keys.Add(eventData.Key);
+        _inputHandler.OnKeyDown(eventData);
     }
 
     /// <summary>
-    /// Event handler for key releases
+    /// Event handler for key releases. Delegates to InputHandler.
     /// </summary>
     /// <param name="eventData"></param>
     protected override void OnKeyUp(KeyEventArgs eventData)
     {
-        base.OnKeyUp(eventData);
-        _keys.Remove(eventData.Key);
-    }
-    /// <summary>
-    /// Updates the camera orientation based on mouse movement.
-    /// Source: https://github.com/opentk/LearnOpenTK/blob/master/Chapter2/2-BasicLighting/Window.cs
-    /// </summary>
-    /// <param name="mouseX">Horizontal mouse movement</param>
-    /// <param name="mouseY">Vertical mouse movement</param>
-    public void ApplyMouseLook(float mouseX, float mouseY)
-    {
-        // Mouse sensitivity
-        const float sensitivity = 0.4f;
-
-        // current mouse position
-        var mouse = new Vector2(mouseX, mouseY);
-        if (_firstMove)
-        {
-            _lastPos = mouse;
-            _firstMove = false;
-        }
-        else
-        {
-            // mouse movement on X axis
-            var deltaX = mouse.X - _lastPos.X;
-            // mouse movement on Y axis
-            var deltaY = mouse.Y - _lastPos.Y;
-            // update last position of the mouse
-            _lastPos = mouse;
-            // camera horizontal rotation
-            _camera.Yaw += deltaX * sensitivity;
-            // camera vertical rotation
-            _camera.Pitch -= deltaY * sensitivity;
-            
-            // Update the binding of the camera settings
-            // Rotate the 2 dimensions by 90 degrees because of the different orientation
-            _cameraSettings.UpdateRotation(_camera.Yaw + 90.0f, _camera.Pitch - 90.0f, 0.0f);
-        }
+        _inputHandler.OnKeyUp(eventData);
     }
 
     /// <summary>
-    /// Helper method for resetting MouseLook for each new click to remove mouse jump
+    /// Helper method for resetting MouseLook for each new click to remove mouse jump. Delegates to InputHandler.
     /// </summary>
     public void ResetMouseLook()
     {
-        _firstMove = true;
+        _inputHandler.ResetMouseLook();
+    }
+
+    /// <summary>
+    /// Updates the camera orientation based on mouse movement. Delegates to InputHandler.
+    /// </summary>
+    /// <param name="x">Horizontal mouse movement.</param>
+    /// <param name="y">Vertical mouse movement.</param>
+    public void ApplyMouseLook(float x, float y)
+    {
+        _inputHandler.ApplyMouseLook(x, y);
     }
 }
