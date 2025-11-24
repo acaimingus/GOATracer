@@ -1,5 +1,6 @@
 ﻿using System;
 using CommunityToolkit.Mvvm.Input;
+using GOATracer.Lights;
 
 namespace GOATracer.ViewModels
 {
@@ -27,25 +28,10 @@ namespace GOATracer.ViewModels
         /// </summary>
         /// <param name="light">Underlying light instance to expose to the UI</param>
         /// <param name="deleteAction">Command used to notify MainWindowViewModel that this Light should be removed by name</param>
-        public LightViewModel(Light light, Action<string> deleteAction)
+        public LightViewModel(Light light, Action<int> deleteAction)
         {
             _light = light;
-            DeleteCommand = new RelayCommand(() => deleteAction?.Invoke(Name));
-        }
-
-        /// <summary>
-        /// Property to get or set the name of the light
-        /// </summary>
-        public string Name
-        {
-            get => _light.Name;
-            set { 
-                if (_light.Name != value) {
-
-                    _light.Name = value;
-                    OnPropertyChanged();
-                }
-            }
+            DeleteCommand = new RelayCommand(() => deleteAction?.Invoke(Id));
         }
 
         public int Id
@@ -79,14 +65,14 @@ namespace GOATracer.ViewModels
         /// <summary>
         /// Gets or sets the X-coordinate of the light's position
         /// </summary>
-        public double LightPositionX
+        public float LightPositionX
         {
-            get => _light.LightPositionX;
+            get => _light.X;
             set
             {
-                if (_light.LightPositionX != value) {
+                if (_light.X != value) {
 
-                    _light.LightPositionX = value;
+                    _light.X = value;
                     OnPropertyChanged();
                 }
             }
@@ -95,14 +81,14 @@ namespace GOATracer.ViewModels
         /// <summary>
         /// Gets or sets the Y-coordinate of the light's position
         /// </summary>
-        public double LightPositionY
+        public float LightPositionY
         {
-            get => _light.LightPositionY;
+            get => _light.Y;
             set
             {
-                if (_light.LightPositionY != value) {
+                if (_light.Y != value) {
 
-                    _light.LightPositionY = value;
+                    _light.Y = value;
                     OnPropertyChanged();
                 }
             }
@@ -111,14 +97,14 @@ namespace GOATracer.ViewModels
         /// <summary>
         /// Gets or sets the Z-coordinate of the light's position
         /// </summary>
-        public double LightPositionZ
+        public float LightPositionZ
         {
-            get => _light.LightPositionZ;
+            get => _light.Z;
             set
             {
-                if (_light.LightPositionZ != value) {
+                if (_light.Z != value) {
 
-                    _light.LightPositionZ = value;
+                    _light.Z = value;
                     OnPropertyChanged();
                 }
             }

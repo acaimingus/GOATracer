@@ -4,6 +4,7 @@ using GOATracer.Views;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
+using GOATracer.Lights;
 
 namespace GOATracer.ViewModels
 {
@@ -29,7 +30,7 @@ namespace GOATracer.ViewModels
         /// <summary>
         /// Command for Deleting the lights
         /// </summary>
-        public IRelayCommand<string> DeleteLightCommand { get; }
+        public RelayCommand<int> DeleteLightCommand { get; }
         /// <summary>
         /// Selected Light in the combobox of the UI
         /// </summary>
@@ -120,7 +121,7 @@ namespace GOATracer.ViewModels
 
             // Initialize commands
             Command = new RelayCommand<string>(OnCommand);
-            DeleteLightCommand = new RelayCommand<string>(DeleteLight);
+            DeleteLightCommand = new RelayCommand<int>(DeleteLight);
 
             AddNewLight();
             SelectedLight = Lights.First();
@@ -133,7 +134,7 @@ namespace GOATracer.ViewModels
         private void AddNewLight()
         {
             _lightCounter++;
-            var newLightModel = new Light() { Name = $"Light {_lightCounter}", IsEnabled = true };
+            var newLightModel = new Light(_lightCounter);
             RayTracerModel.Lights.Add(newLightModel);
 
             var newLightVm = new LightViewModel(newLightModel, DeleteLight);
@@ -195,10 +196,10 @@ namespace GOATracer.ViewModels
         /// Deletes a light with the specified name from the collection of lights in both the ViewModel and the Model.
         /// Deletion executed by name, not by reference.
         /// </summary>
-        /// <param name="lightName">The name of the light to delete</param>
-        private void DeleteLight(string lightName)
+        /// <param name="lightId">The ID of the light to delete</param>
+        private void DeleteLight(int lightId)
         {
-            var lightVm = Lights.FirstOrDefault(l => l.Name == lightName);
+            var lightVm = Lights.FirstOrDefault(l => l.Id == lightId);
             if (lightVm != null)
             {
 

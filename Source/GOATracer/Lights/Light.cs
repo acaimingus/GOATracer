@@ -8,7 +8,11 @@ public class Light
     /// <summary>
     /// ID of this light control
     /// </summary>
-    public int Id { get; private set; }
+    public int Id { get; set; }
+    /// <summary>
+    /// Gets or sets a value indicating whether the light is enabled.
+    /// </summary>
+    public bool IsEnabled { get; set; }
     /// <summary>
     /// X position of the light
     /// </summary>
@@ -32,5 +36,6 @@ public class Light
         X = 0;
         Y = 0;
         Z = 0;
+        IsEnabled = true;
     }
 }

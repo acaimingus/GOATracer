@@ -1,5 +1,6 @@
 ﻿using System.Collections.ObjectModel;
 using GOATracer.Importer.Obj;
+using GOATracer.Lights;
 
 namespace GOATracer
 { 
