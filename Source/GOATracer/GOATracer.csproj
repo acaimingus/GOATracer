@@ -29,4 +29,22 @@
         <PackageReference Include="OpenTK" Version="4.9.4" />
         <PackageReference Include="StbImageSharp" Version="2.27.11" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Preview\Shader.cs">
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Shaders\lighting.frag">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Shaders\shader.frag">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Shaders\shader.vert">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
 </Project>

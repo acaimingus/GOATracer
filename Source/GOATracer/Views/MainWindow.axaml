@@ -112,8 +112,9 @@
 
 
 				<!-- Render area -->
-				<Grid Grid.Column="1" RowDefinitions="3*,1*">
-					<Panel Background="DimGray" />
+				<Grid x:Name="RenderArea" Grid.Column="1" RowDefinitions="3*,1*">
+					<Panel x:Name="RenderPanel" Background="DimGray" PointerPressed="RenderPanel_PointerPressed"
+                       PointerReleased="RenderPanel_PointerReleased" PointerMoved="RenderPanel_PointerMoved"/>
 					<TextBox Grid.Row="1" x:Name="LogOutputTextBlock" IsReadOnly="True"/>
 				</Grid>
 
