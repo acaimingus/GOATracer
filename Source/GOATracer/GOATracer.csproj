@@ -26,5 +26,25 @@
         </PackageReference>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
         <PackageReference Include="MvvmLightLibs" Version="5.4.1.1" />
+        <PackageReference Include="OpenTK" Version="4.9.4" />
+        <PackageReference Include="StbImageSharp" Version="2.27.11" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="Preview\Shader.cs">
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="Shaders\lighting.frag">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Shaders\shader.frag">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="Shaders\shader.vert">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 </Project>

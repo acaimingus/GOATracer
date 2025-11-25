@@ -23,7 +23,7 @@ public class ObjectFace
     /// <param name="material">The material name to use on this face</param>
     public ObjectFace(List<FaceVertex> indices, string material)
     {
-        this.Indices = indices;
-        this.Material = material;
+        Indices = indices;
+        Material = material;
     }
 }

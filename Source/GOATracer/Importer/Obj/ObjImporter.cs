@@ -20,6 +20,8 @@ public static class ObjImporter
     /// <returns>ImportedSceneDescription containing all vertices, faces, and objects from the file</returns>
     public static ImportedSceneDescription ImportModel(string filePath)
     {
+        var unnamedCount = 0;
+        
         // Parse the .obj file and separate it into individual 3D objects
         var fileSegments = SplitFileByObjects(filePath);
 
@@ -49,7 +51,7 @@ public static class ObjImporter
                 var firstSpaceIndex = line.IndexOf(' ');
 
                 // Extract the .obj command type (o, v, f, etc.) by splitting off the first word from the line
-                var firstWord = line[..firstSpaceIndex];
+                var firstWord = GetFirstWord(line);
 
                 // Parse different types of .obj file data based on the command
                 switch (firstWord)
@@ -76,6 +78,7 @@ public static class ObjImporter
                     
                     // Object command found
                     case "o":
+                    case "g":
                         // Extract the name for the object and set it in the object description
                         var nameOnly = line[(firstSpaceIndex + 1)..];
                         objectDescription.ObjectName = nameOnly;
@@ -105,7 +108,7 @@ public static class ObjImporter
                         var indicesOnly = line[(firstSpaceIndex + 1)..];
 
                         // Split into individual vertex references
-                        var splitStringIndices = indicesOnly.Split(' ');
+                        var splitStringIndices = indicesOnly.Split(' ', StringSplitOptions.RemoveEmptyEntries);
                         
                         var indices = new List<FaceVertex>();
 
@@ -131,6 +134,12 @@ public static class ObjImporter
                 }
             }
             
+            if (string.IsNullOrWhiteSpace(objectDescription.ObjectName) && objectDescription.FacePoints.Count > 0)
+            {
+                // If an object has no name but vertices then give it a placeholder name
+                objectDescription.ObjectName = $"Unnamed_Object_{unnamedCount++}";
+            }
+            
             // Check if the object actually is an object (it has a name)
             if (objectDescription.ObjectName != null)
             {
@@ -154,7 +163,7 @@ public static class ObjImporter
         var coordinatesOnly = line[(firstSpaceIndex + 1)..];
 
         // Split "x y z" into individual coordinate strings
-        var splitStringCoordinates = coordinatesOnly.Split(' ');
+        var splitStringCoordinates = coordinatesOnly.Split(' ', StringSplitOptions.RemoveEmptyEntries);
 
         // Convert coordinate strings to numbers
         var coordinates = new float[3];
@@ -213,14 +222,14 @@ public static class ObjImporter
             var firstSpaceIndex = line.IndexOf(' ');
             
             // Check what type of .obj command this line contains
-            var firstWord = line[..firstSpaceIndex];
+            var firstWord = GetFirstWord(line);
             
             switch (firstWord)
             {
                 // New material command found
                 case "newmtl":
                     // Unless it's the first time setting newmtl, add the imported material to the material list
-                    if (currentMaterial != null)
+                    if (currentMaterial != null && !sceneDescription.Materials!.ContainsKey(currentMaterial.MaterialName))
                     {
                         // Add the material with the imported properties until now
                         sceneDescription.Materials.Add(currentMaterial.MaterialName, currentMaterial.BuildObjectMaterial());
@@ -283,8 +292,29 @@ public static class ObjImporter
             }
         }
         
-        // Add the last material too
-        sceneDescription.Materials.Add(currentMaterial!.MaterialName, currentMaterial.BuildObjectMaterial());
+        // Add the last material (if it is there)
+        if (currentMaterial != null && !sceneDescription.Materials!.ContainsKey(currentMaterial.MaterialName))
+        {
+            sceneDescription.Materials!.Add(currentMaterial!.MaterialName, currentMaterial.BuildObjectMaterial());
+        }
+    }
+
+    /// <summary>
+    /// Helper method for more reliably getting the first word (or the .obj/.mtl tag) of the line
+    /// </summary>
+    /// <param name="line">Line where the first word is to be extraced from</param>
+    /// <returns>The first word of the line or the line if there is no space</returns>
+    private static string GetFirstWord(string line)
+    {
+        try
+        {
+            return line[..line.IndexOf(' ')];
+        }
+        catch (ArgumentOutOfRangeException)
+        {
+            // There was no space
+            return line;
+        }
     }
 
     /// <summary>
@@ -297,9 +327,7 @@ public static class ObjImporter
         // Open the file for reading
         // Source: https://learn.microsoft.com/de-de/dotnet/api/system.io.streamreader?view=net-8.0
         using var streamReader = new StreamReader(filePath);
-
-        // Track how many objects we've found
-        var objectCount = 0;
+        
         // Store each object as a separate list of lines
         var objects = new List<List<string>>();
         // Collect lines for the current object being processed
@@ -313,17 +341,17 @@ public static class ObjImporter
             {
                 continue;
             }
-
+            
             // Check what type of .obj command this line contains
-            var firstWord = line[..line.IndexOf(' ')];
+            var firstWord = GetFirstWord(line);
 
             // "o" command starts a new 3D object definition
-            if (firstWord == "o")
+            // The example files given are incorrectly created and use "g" instead
+            if (firstWord is "o" or "g")
             {
                 objects.Add(currentFileSection);
 
                 // Up the object count
-                ++objectCount;
 
                 // Start collecting lines for this new object
                 currentFileSection = [];
@@ -334,7 +362,10 @@ public static class ObjImporter
         }
 
         // Don't forget to add the final object when we reach the end of the file
-        objects.Add(currentFileSection);
+        if (currentFileSection.Count > 0)
+        {        
+            objects.Add(currentFileSection);
+        }
 
         return objects;
     }

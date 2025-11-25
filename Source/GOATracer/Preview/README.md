@@ -1,0 +1,1 @@
+The code within this folder uses the Chapter 2 "3-Materials" example from the [LearnOpenTK Github repository](https://github.com/opentk/LearnOpenTK) as a base.
