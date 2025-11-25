@@ -13,8 +13,11 @@ namespace GOATracer
         {
             this.ImportedSceneDescription = importedSceneDescription;
         }
-        ///
-        public RayTracerModel() { }
+
+        public RayTracerModel()
+        {
+            
+        }
         
         public double CameraPositionX { get; set; }
         public double CameraPositionY { get; set; }

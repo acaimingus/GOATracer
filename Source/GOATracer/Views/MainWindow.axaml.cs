@@ -35,6 +35,9 @@ public partial class MainWindow : Window
     /// <param name="eventData">Event data</param>
     private async void ImportOptionClicked(object? sender, RoutedEventArgs eventData)
     {
+        // Clear previous log messages
+        LogOutputTextBlock.Text = "";
+        
         // Get the parent window to enable file dialog access
         // Source: https://docs.avaloniaui.net/docs/basics/user-interface/file-dialogs
         var topLevel = TopLevel.GetTopLevel(this);
@@ -59,6 +62,10 @@ public partial class MainWindow : Window
             // Extract the local file path from the selected file
             var filePath = files[0].Path.LocalPath;
             await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
+            
+            // Notify the user of the import starting
+            LogOutputTextBlock.Text += "Importing " + filePath + "...\n\n";
+                
             // Import the .obj file and convert it into our scene data structure
             var sceneDescription = ObjImporter.ImportModel(filePath);
 
@@ -77,6 +84,9 @@ public partial class MainWindow : Window
                     RenderPanel.Children.Add(_previewRenderer);
                     
                     SetupLightListeners(vm);
+                    
+                    // Notify the user that the import was successful
+                    LogOutputTextBlock.Text += "Import was successful! Check output.log for more details.";
                 }
             }
         }
@@ -174,7 +184,7 @@ public partial class MainWindow : Window
 
         UpdateRendererLights();
     }
-
+    
     private void OnLightPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         UpdateRendererLights();
