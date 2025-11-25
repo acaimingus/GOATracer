@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using GOATracer.Lights;
+using GOATracer.Models;
 
 namespace GOATracer.ViewModels
 {

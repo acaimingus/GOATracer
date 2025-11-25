@@ -1,7 +1,7 @@
 ﻿using Avalonia;
 using GOATracer.Cameras;
 using GOATracer.Lights;
-using GOATracer.MVC;
+using GOATracer.Models;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;

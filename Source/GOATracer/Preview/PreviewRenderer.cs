@@ -4,7 +4,7 @@ using Avalonia.OpenGL;
 using Avalonia.OpenGL.Controls;
 using GOATracer.Importer.Obj;
 using GOATracer.Lights;
-using GOATracer.MVC;
+using GOATracer.Models;
 using OpenTK.Graphics.ES30;
 using OpenTK.Mathematics;
 using System;

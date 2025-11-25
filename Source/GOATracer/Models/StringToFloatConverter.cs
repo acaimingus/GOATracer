@@ -2,7 +2,7 @@ using System;
 using System.Globalization;
 using Avalonia.Data.Converters;
 
-namespace GOATracer.MVC;
+namespace GOATracer.Models;
 
 public class StringToFloatConverter : IValueConverter
 {

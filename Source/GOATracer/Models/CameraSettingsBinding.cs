@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
-namespace GOATracer.MVC;
+namespace GOATracer.Models;
 
 public sealed class CameraSettingsBinding : INotifyPropertyChanged
 {

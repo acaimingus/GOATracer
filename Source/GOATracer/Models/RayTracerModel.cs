@@ -2,7 +2,7 @@
 using GOATracer.Importer.Obj;
 using GOATracer.Lights;
 
-namespace GOATracer
+namespace GOATracer.Models
 { 
     /// <summary>
     /// Model representing the Ray Tracer settings and scene description
@@ -16,7 +16,6 @@ namespace GOATracer
 
         public RayTracerModel()
         {
-            
         }
         
         public double CameraPositionX { get; set; }

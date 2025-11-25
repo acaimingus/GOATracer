@@ -5,11 +5,10 @@ using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
-using GOATracer.Cameras;
-using GOATracer.Importer.Obj;
-using GOATracer.MVC;
-using GOATracer.Preview;
-using GOATracer.ViewModels;
+using Importer.Obj;
+using Models;
+using Preview;
+using ViewModels;
 using System.Linq;
 
 public partial class MainWindow : Window
