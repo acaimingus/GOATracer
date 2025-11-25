@@ -2,6 +2,7 @@
 		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
 		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
 		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:model="using:GOATracer.Models"
 		xmlns:viewmodel="using:GOATracer.ViewModels"
 		mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
 		x:Class="GOATracer.Views.MainWindow"
@@ -10,6 +11,10 @@
 		Background="#222222"
 		Foreground="White">
 
+	<Window.Resources>
+		<model:StringToFloatConverter x:Key="StringToFloatConverter"/>
+	</Window.Resources>
+	
 	<!-- Design-time data context -->
 	<Design.DataContext>
 		<viewmodel:MainWindowViewModel/>
@@ -84,9 +89,17 @@
 									<DataTemplate>
 										<StackPanel Orientation="Horizontal" Margin="0,5,0,5">
 											<TextBox Text="{Binding Id, Mode=TwoWay}" Width="100" VerticalAlignment="Center"/>
-											<TextBox Width="60" Margin="5,0,0,0" Text="{Binding LightPositionX, Mode=TwoWay}" VerticalAlignment="Center"/>
-											<TextBox Width="60" Margin="5,0,0,0" Text="{Binding LightPositionY, Mode=TwoWay}" VerticalAlignment="Center"/>
-											<TextBox Width="60" Margin="5,0,0,0" Text="{Binding LightPositionZ, Mode=TwoWay}" VerticalAlignment="Center"/>
+											<TextBox Width="60" Margin="5,0,0,0" 
+											         Text="{Binding LightPositionX, Mode=TwoWay, Converter={StaticResource StringToFloatConverter}}" 
+											         VerticalAlignment="Center"/>
+                         
+											<TextBox Width="60" Margin="5,0,0,0" 
+											         Text="{Binding LightPositionY, Mode=TwoWay, Converter={StaticResource StringToFloatConverter}}" 
+											         VerticalAlignment="Center"/>
+                         
+											<TextBox Width="60" Margin="5,0,0,0" 
+											         Text="{Binding LightPositionZ, Mode=TwoWay, Converter={StaticResource StringToFloatConverter}}" 
+											         VerticalAlignment="Center"/>
 										</StackPanel>
 									</DataTemplate>
 								</ItemsControl.ItemTemplate>
