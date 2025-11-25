@@ -8,13 +8,37 @@ namespace GOATracer.Preview
 {
     public class InputHandler
     {
+        /// <summary>
+        /// Variable defining the speed of the camera
+        /// </summary>
         private float _cameraSpeed;
+        /// <summary>
+        /// Variable definining if the movement requested by the user is the first one after clicking into the viewport;
+        /// Used for eliminating jitter when clicking into the viewport
+        /// </summary>
         private bool _firstMove;
+        /// <summary>
+        /// The last position of the mouse
+        /// </summary>
         private Vector2 _lastPos;
+        /// <summary>
+        /// Keys that have been pressed
+        /// </summary>
         private readonly HashSet<Key> _keys = [];
+
+        /// <summary>
+        /// The preview scene itself
+        /// </summary>
         private PreviewScene _previewScene;
+        /// <summary>
+        /// Camera bindings
+        /// </summary>
         private readonly CameraSettingsBinding _cameraSettings;
 
+        /// <summary>
+        /// Constructor for the InputHandler
+        /// </summary>
+        /// <param name="previewScene">The associated previewScene</param>
         public InputHandler(PreviewScene previewScene)
         {
             _firstMove = true;

@@ -15,15 +15,38 @@ namespace GOATracer.Preview;
 
 public class PreviewRenderer : OpenGlControlBase
 {
-    
+    /// <summary>
+    /// The maximum amount of lights a scene can have; Necessary because we need to allocate a given amount of memory in OpenGL for each light
+    /// </summary>
     private const int MaxLights = 128;
+    /// <summary>
+    /// Bool specifying if OpenGL is loadeed
+    /// </summary>
     private bool _glLoaded;
+    /// <summary>
+    /// The shader for the lamps
+    /// </summary>
     private Shader _lampShader;
+    /// <summary>
+    /// Lightning shader
+    /// </summary>
     private Shader _lightingShader;
 
+    /// <summary>
+    /// The scene description provided by the importer
+    /// </summary>
     private readonly ImportedSceneDescription _sceneDescription;
+    /// <summary>
+    /// The created preview scene
+    /// </summary>
     private readonly PreviewScene _previewScene;
+    /// <summary>
+    /// Input handler for the given scene
+    /// </summary>
     private readonly InputHandler _inputHandler;
+    /// <summary>
+    /// Manager for the render resources
+    /// </summary>
     private readonly RenderResourceManager _renderResourceManager = new();
 
     /// <summary>
@@ -37,20 +60,28 @@ public class PreviewRenderer : OpenGlControlBase
     }
 
     /// <summary>
-    /// Constructor
+    /// Constructor for the PreviewRenderer
     /// </summary>
+    /// <param name="sceneDescription">Scene description to be used</param>
+    /// <param name="lights">The lights present in the scene</param>
+    /// <param name="cameraSettings">The camera settings of the scene</param>
     public PreviewRenderer(ImportedSceneDescription sceneDescription, List<Light> lights, CameraSettingsBinding cameraSettings)
     {
+        // Set the private fields
         _sceneDescription = sceneDescription;
         _previewScene = new PreviewScene(lights, cameraSettings);
         _inputHandler = new InputHandler(_previewScene);
+        
+        // Create a dictionary of vertices by texture for rendering different materials
         var verticesByTexture = _renderResourceManager.GetVerticesByTexture();
 
         // Make sure we can get keyboard focus
         this.Focusable = true;
 
+        // List of vertices
         var vertexDataList = new List<float>();
 
+        // Define the material for each face
         foreach (var objectDescription in sceneDescription.ObjectDescriptions!)
         {
             foreach (var face in objectDescription.FacePoints)
@@ -128,6 +159,10 @@ public class PreviewRenderer : OpenGlControlBase
         }
     }
 
+    /// <summary>
+    /// Avalonia method for initializing OpenGL
+    /// </summary>
+    /// <param name="gl">Avalonias Interface for OpenGL</param>
     protected override void OnOpenGlInit(GlInterface gl)
     {
         base.OnOpenGlInit(gl);
@@ -140,18 +175,22 @@ public class PreviewRenderer : OpenGlControlBase
         // This is gray
         GL.ClearColor(0.13f, 0.14f, 0.15f, 1.0f);
 
+        // Get all needed textures
         _renderResourceManager.LoadTextures(_sceneDescription);
 
         // To see which triangles are in front of others
         GL.Enable(EnableCap.DepthTest);
 
-        _lightingShader = _renderResourceManager.LoadShader("Shaders/shader.vert", "Shaders/lighting.frag");
-        _lampShader = _renderResourceManager.LoadShader("Shaders/shader.vert", "Shaders/shader.frag");
+        // Load the shaders
+        _lightingShader = RenderResourceManager.LoadShader("Shaders/shader.vert", "Shaders/lighting.frag");
+        _lampShader = RenderResourceManager.LoadShader("Shaders/shader.vert", "Shaders/shader.frag");
 
+        // Split the vertices by texture
         var verticesByTexture = _renderResourceManager.GetVerticesByTexture();
 
         foreach (var (texturePath, vertices) in  verticesByTexture)
         {
+            // Generate VAOs
             var vbo = GL.GenBuffer();
             GL.BindBuffer(BufferTarget.ArrayBuffer, vbo);
             
@@ -171,6 +210,7 @@ public class PreviewRenderer : OpenGlControlBase
             GL.EnableVertexAttribArray(texCoordLocation);
             GL.VertexAttribPointer(texCoordLocation, 2, VertexAttribPointerType.Float, false, 8 * sizeof(float), 3 * sizeof(float));
             
+            // Normal coordinates attribute
             var normalLocation = _lightingShader.GetAttribLocation("aNormal");
             GL.EnableVertexAttribArray(normalLocation);
             GL.VertexAttribPointer(normalLocation, 3, VertexAttribPointerType.Float, false, 8 * sizeof(float), 5 * sizeof(float));
@@ -178,21 +218,17 @@ public class PreviewRenderer : OpenGlControlBase
             _renderResourceManager.SetVao(texturePath, vao);
             _renderResourceManager.SetVbo(texturePath, vbo);
             _renderResourceManager.SetVertexCount(texturePath, vertexArray.Length / 8);
-
-            // _vbos[texturePath] = vbo;
-            // _vaos[texturePath] = vao;
-            // _vertexCounts[texturePath] = vertexArray.Length / 8;
         }
 
         // Create a SEPARATE VBO for the lamp objects
         _renderResourceManager.LampBufferObject = GL.GenBuffer();
-        float[] lampVertices = _renderResourceManager.LampVertices;
+        var lampVertices = _renderResourceManager.LampVertices;
 
         GL.BindBuffer(BufferTarget.ArrayBuffer, _renderResourceManager.LampBufferObject);
         GL.BufferData(BufferTarget.ArrayBuffer, lampVertices.Length * sizeof(float), lampVertices, BufferUsageHint.StaticDraw);
         
         {
-            int vaoLamp = GL.GenVertexArray();
+            var vaoLamp = GL.GenVertexArray();
             _renderResourceManager.VaoLamp = vaoLamp;
             GL.BindVertexArray(vaoLamp);
             GL.BindBuffer(BufferTarget.ArrayBuffer, _renderResourceManager.LampBufferObject);
@@ -211,14 +247,14 @@ public class PreviewRenderer : OpenGlControlBase
         // check if GL is loaded
         if (!_glLoaded) return;
 
-        var _camera = _previewScene.GetCamera();
-        var _lights = _previewScene.GetLights();
+        var camera = _previewScene.GetCamera();
+        var lights = _previewScene.GetLights();
 
         // Handle controls in the viewport
         _inputHandler.HandleKeyboard();
         
         // Add a scaling factor for displays which use it
-        var scalingFactor = this.VisualRoot.RenderScaling;
+        var scalingFactor = VisualRoot!.RenderScaling;
         
         // set viewport according to the control size
         var w = Math.Max(1, (int)(Bounds.Width * scalingFactor));
@@ -233,22 +269,22 @@ public class PreviewRenderer : OpenGlControlBase
         _lightingShader.SetInt("texture0", 0);
 
         _lightingShader.SetMatrix4("model", Matrix4.Identity);
-        _lightingShader.SetMatrix4("view", _camera.GetViewMatrix());
-        _lightingShader.SetMatrix4("projection", _camera.GetProjectionMatrix());
-        _lightingShader.SetVector3("viewPos", _camera.Position);
+        _lightingShader.SetMatrix4("view", camera.GetViewMatrix());
+        _lightingShader.SetMatrix4("projection", camera.GetProjectionMatrix());
+        _lightingShader.SetVector3("viewPos", camera.Position);
 
-        var activeLightCount = Math.Min(_lights.Count, MaxLights);
+        var activeLightCount = Math.Min(lights.Count, MaxLights);
         _lightingShader.SetInt("activeLightCount", activeLightCount);
         var time = DateTime.Now.Second + DateTime.Now.Millisecond / 1000f;
 
         for (var i = 0; i < activeLightCount; i++)
         {
             // white light
-            Vector3 lightColor = new Vector3(1f, 1f, 1f);
+            var lightColor = new Vector3(1f, 1f, 1f);
 
             var ambientColor = lightColor * 0.05f;
 
-            _lightingShader.SetVector3($"lights[{i}].position", _lights[i]);
+            _lightingShader.SetVector3($"lights[{i}].position", lights[i]);
             _lightingShader.SetVector3($"lights[{i}].ambient", ambientColor);
             _lightingShader.SetVector3($"lights[{i}].diffuse", lightColor);
             _lightingShader.SetVector3($"lights[{i}].specular", new Vector3(1.0f, 1.0f, 1.0f));
@@ -323,11 +359,11 @@ public class PreviewRenderer : OpenGlControlBase
         
         GL.BindVertexArray(_renderResourceManager.GetVaoLamp());
         
-        _lampShader.SetMatrix4("view", _camera.GetViewMatrix());
-        _lampShader.SetMatrix4("projection", _camera.GetProjectionMatrix());
+        _lampShader.SetMatrix4("view", camera.GetViewMatrix());
+        _lampShader.SetMatrix4("projection", camera.GetProjectionMatrix());
         _lampShader.Use();
 
-        foreach (var light in _lights.GetRange(0, activeLightCount))
+        foreach (var light in lights.GetRange(0, activeLightCount))
         {
             var lampMatrix = Matrix4.Identity;
             lampMatrix *= Matrix4.CreateScale(0.2f);

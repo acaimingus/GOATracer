@@ -3,19 +3,30 @@ using GOATracer.Cameras;
 using GOATracer.Lights;
 using GOATracer.Models;
 using OpenTK.Mathematics;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GOATracer.Preview
 {
+    /// <summary>
+    /// Represents the 3D preview scene, managing the camera, lights, and their interactions with the UI.
+    /// </summary>
     public class PreviewScene
     {
+        /// <summary>
+        /// The camera used to view the scene.
+        /// </summary>
         private Camera _camera;
+        
+        /// <summary>
+        /// Binds camera settings to the UI for two-way updates.
+        /// </summary>
         private readonly CameraSettingsBinding _cameraSettings;
-        private List<Vector3> _lights;
+        
+        /// <summary>
+        /// A list of light positions in the scene.
+        /// </summary>
+        private List<Vector3>? _lights;
 
         /// <summary>
         /// Constructor
@@ -51,7 +62,7 @@ namespace GOATracer.Preview
         /// Gets the list of light positions.
         /// </summary>
         /// <returns></returns>
-        public List<Vector3> GetLights()
+        public List<Vector3>? GetLights()
         {
             return _lights;
         }
@@ -62,7 +73,7 @@ namespace GOATracer.Preview
         /// <remarks>This method synchronizes the camera's position and rotation with the values specified
         /// in the associated UI settings. It should be called whenever the camera settings are  modified through the
         /// user interface to ensure the camera reflects the updated values.</remarks>
-        public void OnCameraSettingsChangedFromUi()
+        private void OnCameraSettingsChangedFromUi()
         {
             _camera.Position = new Vector3(_cameraSettings.PositionX, _cameraSettings.PositionY, _cameraSettings.PositionZ);
             _camera.Pitch = _cameraSettings.RotationX;

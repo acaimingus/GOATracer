@@ -19,10 +19,8 @@ namespace GOATracer.Preview
     // A helper class, much like Shader, meant to simplify loading textures.
     //
     // Source: https://github.com/opentk/LearnOpenTK
-    public class Texture
+    public class Texture(int glHandle)
     {
-        private readonly int _handle;
-
         public static Texture LoadFromFile(string path)
         {
             // Generate handle
@@ -84,11 +82,6 @@ namespace GOATracer.Preview
             return new Texture(handle);
         }
 
-        public Texture(int glHandle)
-        {
-            _handle = glHandle;
-        }
-
         // Activate texture
         // Multiple textures can be bound, if your shader needs more than just one.
         // If you want to do that, use GL.ActiveTexture to set which slot GL.BindTexture binds to.
@@ -96,7 +89,7 @@ namespace GOATracer.Preview
         public void Use(TextureUnit unit)
         {
             GL.ActiveTexture(unit);
-            GL.BindTexture(TextureTarget.Texture2D, _handle);
+            GL.BindTexture(TextureTarget.Texture2D, glHandle);
         }
     }
 }

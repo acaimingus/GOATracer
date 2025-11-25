@@ -11,22 +11,28 @@ using Preview;
 using ViewModels;
 using System.Linq;
 
+/// <summary>
+/// Represents the main window of the GOATracer application.
+/// </summary>
 public partial class MainWindow : Window
 {
-    private PreviewRenderer _previewRenderer;
+    /// <summary>
+    /// The renderer for the 3D preview.
+    /// </summary>
+    private PreviewRenderer? _previewRenderer;
+    
+    /// <summary>
+    /// A flag indicating whether mouse look is active.
+    /// </summary>
     private bool _mouseLookActive = false;
 
-    // Constructor initializes the MainWindow and sets its DataContext to MainWindowViewModel, start of the program
+    /// <summary>
+    /// Initializes a new instance of the <see cref="MainWindow"/> class.
+    /// </summary>
     public MainWindow()
     {
         InitializeComponent();
-        this.DataContext = new MainWindowViewModel();
-    }
-
-    // Event handler for the Exit menu option, closes the application when clicked
-    private void ExitOptionClicked(object? sender, RoutedEventArgs e)
-    {
-        this.Close();
+        DataContext = new MainWindowViewModel();
     }
 
     /// <summary>
@@ -156,6 +162,10 @@ public partial class MainWindow : Window
         previewRenderer.ApplyMouseLook((float)pos.X, (float)pos.Y);
     }
 
+    /// <summary>
+    /// Sets up listeners for changes in the collection of lights.
+    /// </summary>
+    /// <param name="vm">The main window view model.</param>
     private void SetupLightListeners(MainWindowViewModel vm)
     {
         vm.EnabledLights.CollectionChanged += OnLightsCollectionChanged;
@@ -166,6 +176,11 @@ public partial class MainWindow : Window
         }
     }
 
+    /// <summary>
+    /// Handles changes to the collection of lights (added or removed).
+    /// </summary>
+    /// <param name="sender">The object that raised the event.</param>
+    /// <param name="e">The event data.</param>
     private void OnLightsCollectionChanged(object? sender,
         System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
@@ -188,20 +203,33 @@ public partial class MainWindow : Window
         UpdateRendererLights();
     }
 
+    /// <summary>
+    /// Handles property changes for an individual light.
+    /// </summary>
+    /// <param name="sender">The object that raised the event.</param>
+    /// <param name="e">The event data.</param>
     private void OnLightPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         UpdateRendererLights();
     }
 
+    /// <summary>
+    /// Updates the lights in the preview renderer based on the current view model state.
+    /// </summary>
     private void UpdateRendererLights()
     {
         if (DataContext is not MainWindowViewModel vm) return;
 
         var lights = vm.EnabledLights.Select(l => l.Model).ToList();
 
-        _previewRenderer.UpdateLights(lights);
+        _previewRenderer?.UpdateLights(lights);
     }
 
+    /// <summary>
+    /// Sets up two-way data bindings between the view model's camera properties and the camera settings binding.
+    /// </summary>
+    /// <param name="vm">The main window view model.</param>
+    /// <param name="cameraSettings">The camera settings binding object.</param>
     private void SetupCameraBindings(MainWindowViewModel vm, CameraSettingsBinding cameraSettings)
     {
         cameraSettings.PositionX = (float)vm.CameraPositionX;

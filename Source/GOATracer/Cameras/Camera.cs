@@ -3,57 +3,74 @@ using OpenTK.Mathematics;
 
 namespace GOATracer.Cameras
 {
-    // This is the camera class as it could be set up after the tutorials on the website.
-    // It is important to note there are a few ways you could have set up this camera.
-    // For example, you could have also managed the player input inside the camera class,
-    // and a lot of the properties could have been made into functions.
-
-    // TL;DR: This is just one of many ways in which we could have set up the camera.
-    // Check out the web version if you don't know why we are doing a specific thing or want to know more about the code.
+    /// <summary>
+    /// A simple class for setting up the camera;
+    /// Source: https://github.com/opentk/LearnOpenTK
+    /// </summary>
     public class Camera
     {
         /// <summary>
-        /// Far plane value
+        /// Near plane value
         /// </summary>
         private const float NearPlane = 0.01f;
         /// <summary>
-        /// Near plane value
+        /// Far plane value
         /// </summary>
         private const float FarPlane = 100000000f;
-        
-        // Those vectors are directions pointing outwards from the camera to define how it rotated.
+        /// <summary>
+        /// Private backing field of the front vector of the camera
+        /// </summary>
         private Vector3 _front = -Vector3.UnitZ;
-
-        // Rotation around the X axis (radians)
+        /// <summary>
+        /// Rotation around the X axis (radians)
+        /// </summary>
         private float _pitch;
-
-        // Rotation around the Y axis (radians)
-        private float _yaw = -MathHelper.PiOver2; // Without this, you would be started rotated 90 degrees right.
-
-        // The field of view of the camera (radians)
+        /// <summary>
+        /// Rotation around the Y axis (radians)
+        /// </summary>
+        private float _yaw = -MathHelper.PiOver2;
+        /// <summary>
+        /// The field of view of the camera (radians)
+        /// </summary>
         private float _fov = MathHelper.PiOver2;
+        /// <summary>
+        /// This is simply the aspect ratio of the viewport, used for the projection matrix
+        /// </summary>
+        private float AspectRatio { get; }
 
+        /// <summary>
+        /// Constructor for the camera
+        /// </summary>
+        /// <param name="position">Vector specifying the camera positio</param>
+        /// <param name="aspectRatio">Aspect ratio of the camera</param>
         public Camera(Vector3 position, float aspectRatio)
         {
             Position = position;
             AspectRatio = aspectRatio;
         }
-
-        // The position of the camera
+        /// <summary>
+        /// The position of the camera
+        /// </summary>
         public Vector3 Position { get; set; }
-
-        // This is simply the aspect ratio of the viewport, used for the projection matrix.
-        private float AspectRatio { get; }
-
+        /// <summary>
+        /// Vector specifying where the camera is looking (aka the front of the camera)
+        /// </summary>
         public Vector3 Front => _front;
-
+        /// <summary>
+        /// Up vector of the camera
+        /// </summary>
         public Vector3 Up { get; private set; } = Vector3.UnitY;
-
+        /// <summary>
+        /// Right vector of the camera
+        /// </summary>
         public Vector3 Right { get; private set; } = Vector3.UnitX;
-
-        // We convert from degrees to radians as soon as the property is set to improve performance.
+        
+        /// <summary>
+        /// Property for the pitch of the camera
+        /// </summary>
         public float Pitch
         {
+            // We convert from degrees to radians as soon as the property is set to improve performance
             get => MathHelper.RadiansToDegrees(_pitch);
             set
             {
@@ -65,10 +82,13 @@ namespace GOATracer.Cameras
                 UpdateVectors();
             }
         }
-
-        // We convert from degrees to radians as soon as the property is set to improve performance.
+        
+        /// <summary>
+        /// Property for the yaw of the camera
+        /// </summary>
         public float Yaw
         {
+            // We convert from degrees to radians as soon as the property is set to improve performance
             get => MathHelper.RadiansToDegrees(_yaw);
             set
             {
@@ -76,13 +96,13 @@ namespace GOATracer.Cameras
                 UpdateVectors();
             }
         }
-
-        // The field of view (FOV) is the vertical angle of the camera view.
-        // This has been discussed more in depth in a previous tutorial,
-        // but in this tutorial, you have also learned how we can use this to simulate a zoom feature.
-        // We convert from degrees to radians as soon as the property is set to improve performance.
+        
+        /// <summary>
+        /// FOV property of the camera; The field of view (FOV) is the vertical angle of the camera view
+        /// </summary>
         public float Fov
         {
+            // We convert from degrees to radians as soon as the property is set to improve performance
             get => MathHelper.RadiansToDegrees(_fov);
             set
             {
@@ -91,19 +111,27 @@ namespace GOATracer.Cameras
             }
         }
 
-        // Get the view matrix using the amazing LookAt function described more in depth on the web tutorials
+        /// <summary>
+        /// Helper method for getting the view matrix of the camera
+        /// </summary>
+        /// <returns>View matrix of the camera</returns>
         public Matrix4 GetViewMatrix()
         {
             return Matrix4.LookAt(Position, Position + _front, Up);
         }
-
-        // Get the projection matrix using the same method we have used up until this point
+        
+        /// <summary>
+        /// Helper method for getting the projection matrix
+        /// </summary>
+        /// <returns>the projection matrix of the camera</returns>
         public Matrix4 GetProjectionMatrix()
         {
             return Matrix4.CreatePerspectiveFieldOfView(_fov, AspectRatio, NearPlane, FarPlane);
         }
 
-        // This function is going to update the direction vertices using some of the math learned in the web tutorials.
+        /// <summary>
+        /// Helper function for updating the direction vertices
+        /// </summary>
         private void UpdateVectors()
         {
             // First, the front matrix is calculated using some basic trigonometry.

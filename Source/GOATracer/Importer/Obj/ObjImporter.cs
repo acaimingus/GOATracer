@@ -136,6 +136,7 @@ public static class ObjImporter
             
             if (string.IsNullOrWhiteSpace(objectDescription.ObjectName) && objectDescription.FacePoints.Count > 0)
             {
+                // If an object has no name but vertices then give it a placeholder name
                 objectDescription.ObjectName = $"Unnamed_Object_{unnamedCount++}";
             }
             
@@ -298,13 +299,18 @@ public static class ObjImporter
         }
     }
 
+    /// <summary>
+    /// Helper method for more reliably getting the first word (or the .obj/.mtl tag) of the line
+    /// </summary>
+    /// <param name="line">Line where the first word is to be extraced from</param>
+    /// <returns>The first word of the line or the line if there is no space</returns>
     private static string GetFirstWord(string line)
     {
         try
         {
             return line[..line.IndexOf(' ')];
         }
-        catch (ArgumentOutOfRangeException exception)
+        catch (ArgumentOutOfRangeException)
         {
             // There was no space
             return line;
@@ -321,9 +327,7 @@ public static class ObjImporter
         // Open the file for reading
         // Source: https://learn.microsoft.com/de-de/dotnet/api/system.io.streamreader?view=net-8.0
         using var streamReader = new StreamReader(filePath);
-
-        // Track how many objects we've found
-        var objectCount = 0;
+        
         // Store each object as a separate list of lines
         var objects = new List<List<string>>();
         // Collect lines for the current object being processed
@@ -348,7 +352,6 @@ public static class ObjImporter
                 objects.Add(currentFileSection);
 
                 // Up the object count
-                ++objectCount;
 
                 // Start collecting lines for this new object
                 currentFileSection = [];

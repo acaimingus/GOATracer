@@ -4,18 +4,64 @@ using System.Runtime.CompilerServices;
 
 namespace GOATracer.Models;
 
+/// <summary>
+/// Binds camera settings to the UI, allowing for two-way updates.
+/// </summary>
 public sealed class CameraSettingsBinding : INotifyPropertyChanged
 {
+    /// <summary>
+    /// Private backing field for the X-coordinate of the camera's position.
+    /// </summary>
+    private float _positionX;
+
+    /// <summary>
+    /// Private backing field for the Y-coordinate of the camera's position.
+    /// </summary>
+    private float _positionY;
+
+    /// <summary>
+    /// Private backing field for the Z-coordinate of the camera's position.
+    /// </summary>
+    private float _positionZ;
+
+    /// <summary>
+    /// Private backing field for the X-coordinate of the camera's rotation.
+    /// </summary>
+    private float _rotationX;
+
+    /// <summary>
+    /// Private backing field for the Y-coordinate of the camera's rotation.
+    /// </summary>
+    private float _rotationY;
+
+    /// <summary>
+    /// Private backing field for the Z-coordinate of the camera's rotation.
+    /// </summary>
+    private float _rotationZ;
+
+    /// <summary>
+    /// Occurs when a property value changes.
+    /// </summary>
     public event PropertyChangedEventHandler? PropertyChanged;
 
+    /// <summary>
+    /// Occurs when the camera needs to be updated from the UI.
+    /// </summary>
     public event Action? UiCameraUpdate;
 
+    /// <summary>
+    /// Raises the <see cref="PropertyChanged"/> event.
+    /// </summary>
+    /// <param name="propertyName">The name of the property that changed.</param>
     private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    private float _positionX;
+
+    /// <summary>
+    /// Gets or sets the X-coordinate of the camera's position.
+    /// </summary>
     public float PositionX
     {
         get => _positionX;
@@ -29,7 +75,10 @@ public sealed class CameraSettingsBinding : INotifyPropertyChanged
             }
         }
     }
-    private float _positionY;
+
+    /// <summary>
+    /// Gets or sets the Y-coordinate of the camera's position.
+    /// </summary>
     public float PositionY
     {
         get => _positionY;
@@ -43,7 +92,11 @@ public sealed class CameraSettingsBinding : INotifyPropertyChanged
             }
         }
     }
-    private float _positionZ;
+
+
+    /// <summary>
+    /// Gets or sets the Z-coordinate of the camera's position.
+    /// </summary>
     public float PositionZ
     {
         get => _positionZ;
@@ -57,7 +110,11 @@ public sealed class CameraSettingsBinding : INotifyPropertyChanged
             }
         }
     }
-    private float _rotationX;
+
+
+    /// <summary>
+    /// Gets or sets the X-coordinate of the camera's rotation.
+    /// </summary>
     public float RotationX
     {
         get => _rotationX;
@@ -71,7 +128,10 @@ public sealed class CameraSettingsBinding : INotifyPropertyChanged
             }
         }
     }
-    private float _rotationY;
+
+    /// <summary>
+    /// Gets or sets the Y-coordinate of the camera's rotation.
+    /// </summary>
     public float RotationY
     {
         get => _rotationY;
@@ -85,7 +145,10 @@ public sealed class CameraSettingsBinding : INotifyPropertyChanged
             }
         }
     }
-    private float _rotationZ;
+
+    /// <summary>
+    /// Gets or sets the Z-coordinate of the camera's rotation.
+    /// </summary>
     public float RotationZ
     {
         get => _rotationZ;
@@ -100,6 +163,12 @@ public sealed class CameraSettingsBinding : INotifyPropertyChanged
         }
     }
 
+    /// <summary>
+    /// Updates the camera's position.
+    /// </summary>
+    /// <param name="x">X position</param>
+    /// <param name="y">Y position</param>
+    /// <param name="z">Z position</param>
     public void UpdatePosition(float x, float y, float z)
     {
         _positionX = x;
@@ -110,6 +179,12 @@ public sealed class CameraSettingsBinding : INotifyPropertyChanged
         OnPropertyChanged(nameof(PositionZ));
     }
 
+    /// <summary>
+    /// Updates the camera's rotation.
+    /// </summary>
+    /// <param name="x">X rotation</param>
+    /// <param name="y">Y rotation</param>
+    /// <param name="z">Z rotation</param>
     public void UpdateRotation(float x, float y, float z)
     {
         _rotationX = x;
