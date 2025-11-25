@@ -1,0 +1,109 @@
+<Window xmlns="https://github.com/avaloniaui"
+		xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+		xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+		xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+		xmlns:model="using:GOATracer.Models"
+		xmlns:viewmodel="using:GOATracer.ViewModels"
+		mc:Ignorable="d" d:DesignWidth="1600" d:DesignHeight="900"
+		x:Class="GOATracer.Views.MainWindow"
+		x:DataType="viewmodel:MainWindowViewModel"
+		Title="GOATracer"
+		Background="#222222"
+		Foreground="White">
+
+	<Window.Resources>
+		<model:StringToFloatConverter x:Key="StringToFloatConverter"/>
+	</Window.Resources>
+	
+	<!-- Design-time data context -->
+	<Design.DataContext>
+		<viewmodel:MainWindowViewModel/>
+	</Design.DataContext>
+	<Border Padding="10">
+		<DockPanel>
+			<!-- Top toolbar with FileChooser -->
+			<Menu DockPanel.Dock="Top">
+				<Button x:Name="FileChooser" Content="Choose file&#xE8A5;" Background="DarkRed" Foreground="White" VerticalAlignment="Center" Click="ImportOptionClicked" />
+			</Menu>
+			<!-- Main window -->
+			<Grid ShowGridLines="True" ColumnDefinitions="*,3*">
+				<!-- Sidebar with Camera and light settings -->
+				<Grid RowDefinitions="1.5*,2*,*,40">
+					<!-- Camera Settings -->
+					<Grid Grid.Row="0" Margin="5" RowDefinitions="*,*,*,*,*,*,*" ColumnDefinitions="*,*,*">
+						<Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Content="Camera settings" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+						<Label Grid.Row="1" Grid.Column="0" Content="X-Position" FontSize="10"  VerticalAlignment="Center"/>
+						<Label Grid.Row="1" Grid.Column="1" Content="Y-Position" FontSize="10" VerticalAlignment="Center"/>
+						<Label Grid.Row="1" Grid.Column="2" Content="Z-Position" FontSize="10" VerticalAlignment="Center"/>
+						<NumericUpDown Name="CameraPositionX" Grid.Row="2" Grid.Column="0" Margin="0 0 5 0" Value="{Binding CameraPositionX, Mode=TwoWay}" Increment="1"></NumericUpDown>
+						<NumericUpDown Name="CameraPositionY" Grid.Row="2" Grid.Column="1" Value="{Binding CameraPositionY, Mode=TwoWay}" Increment="1"></NumericUpDown>
+						<NumericUpDown Name="CameraPositionZ" Grid.Row="2" Grid.Column="2" Margin=" 5 0 0 0" Value="{Binding CameraPositionZ, Mode=TwoWay}" Increment="1"></NumericUpDown>
+						<Label Grid.Row="3" Grid.Column="0" Content="X-Rotation" FontSize="10" VerticalAlignment="Center"/>
+						<Label Grid.Row="3" Grid.Column="1" Content="Y-Rotation" FontSize="10" VerticalAlignment="Center"/>
+						<Label Grid.Row="3" Grid.Column="2" Content="Z-Rotation" FontSize="10" VerticalAlignment="Center"/>
+						<NumericUpDown Name="CameraRotationX" Grid.Row="4" Grid.Column="0" Margin="0 0 5 0" Value="{Binding CameraRotationX, Mode=TwoWay}" Increment="1"></NumericUpDown>
+						<NumericUpDown Name="CameraRotationY" Grid.Row="4" Grid.Column="1" Value="{Binding CameraRotationY, Mode=TwoWay}" Increment="1"></NumericUpDown>
+						<NumericUpDown Name="CameraRotationZ" Grid.Row="4" Grid.Column="2" Margin=" 5 0 0 0" Value="{Binding CameraRotationZ, Mode=TwoWay}" Increment="1"></NumericUpDown>
+					</Grid>
+					<!-- Light settings grid -->
+					<Grid  Grid.Row="1" Margin="5" RowDefinitions="40,50,*" ColumnDefinitions="*,*,*">
+						<Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Content="Light settings" FontSize="10" FontWeight="Bold" VerticalAlignment="Center"/>
+						<Button Grid.Row="1" Grid.Column="0" Content="Add Light" Background="DarkRed" Foreground="White" VerticalAlignment="Center" Command="{Binding Command}" CommandParameter="AddLight"/>
+						<!-- Dropdown list of lights with delete button -->
+						<ComboBox x:Name="LightsCombobox" VerticalAlignment="Center"  Grid.Row="1" Grid.Column="1" SelectedIndex="0" Grid.ColumnSpan="2" ItemsSource="{Binding Lights}" SelectedItem="{Binding SelectedLight, Mode=TwoWay}">
+							<ComboBox.ItemTemplate>
+								<DataTemplate>
+									<StackPanel Orientation="Horizontal">
+										<CheckBox VerticalAlignment="Center" IsChecked="{Binding IsEnabled, Mode=TwoWay}" IsDefault="False"></CheckBox>
+										<TextBlock Text="{Binding Id}" VerticalAlignment="Center"></TextBlock>
+										<!-- Delete button for each light -->
+										<Button  Content="Delete" Background="DarkRed" Foreground="White" VerticalAlignment="Center" Command="{Binding DeleteCommand}" CommandParameter ="{Binding Id}"/>
+									</StackPanel>
+								</DataTemplate>
+							</ComboBox.ItemTemplate>
+						</ComboBox>
+						<!-- Light position controls for enabled lights -->
+						<ScrollViewer Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" VerticalScrollBarVisibility="Auto">
+							<ItemsControl ItemsSource="{Binding EnabledLights}">
+								<ItemsControl.ItemTemplate>
+									<DataTemplate>
+										<StackPanel Orientation="Horizontal" Margin="0,5,0,5">
+											<TextBox Text="{Binding Id, Mode=TwoWay}" Width="100" VerticalAlignment="Center"/>
+											<TextBox Width="60" Margin="5,0,0,0" 
+											         Text="{Binding LightPositionX, Mode=TwoWay, Converter={StaticResource StringToFloatConverter}}" 
+											         VerticalAlignment="Center"/>
+											<TextBox Width="60" Margin="5,0,0,0" 
+											         Text="{Binding LightPositionY, Mode=TwoWay, Converter={StaticResource StringToFloatConverter}}" 
+											         VerticalAlignment="Center"/>
+											<TextBox Width="60" Margin="5,0,0,0" 
+											         Text="{Binding LightPositionZ, Mode=TwoWay, Converter={StaticResource StringToFloatConverter}}" 
+											         VerticalAlignment="Center"/>
+										</StackPanel>
+									</DataTemplate>
+								</ItemsControl.ItemTemplate>
+							</ItemsControl>
+						</ScrollViewer>
+					</Grid>
+					<!-- Image Size Settings -->
+					<Grid Grid.Row="2" RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,*">
+						<Label Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Content="Image Size" FontSize="20" FontWeight="Bold" VerticalAlignment="Center"/>
+
+						<Label Grid.Row="1" Grid.Column="0" Content="Width" FontSize="10" VerticalAlignment="Center"/>
+						<TextBox Grid.Row="1" Grid.Column="1" Text="800"/>
+
+						<Label Grid.Row="2" Grid.Column="0" Content="Height" FontSize="10" VerticalAlignment="Center"/>
+						<TextBox Grid.Row="2" Grid.Column="1" Text="600"/>
+					</Grid>
+					<!-- Render Button -->
+					<Button Grid.Row="3" Height="40" Width="200" Content="Render" Background="DarkRed" Foreground="White" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="20" VerticalContentAlignment="Center" HorizontalContentAlignment="Center"  Command="{Binding Command}" CommandParameter="Render"/>
+				</Grid>
+				<!-- Render area -->
+				<Grid x:Name="RenderArea" Grid.Column="1" RowDefinitions="3*,1*">
+					<Panel x:Name="RenderPanel" Background="#212426" PointerPressed="RenderPanel_PointerPressed"
+                       PointerReleased="RenderPanel_PointerReleased" PointerMoved="RenderPanel_PointerMoved"/>
+					<TextBox Grid.Row="1" x:Name="LogOutputTextBlock" IsReadOnly="True" IsHitTestVisible="False"/>
+				</Grid>
+			</Grid>
+		</DockPanel>
+	</Border>
+</Window>
