@@ -12,6 +12,8 @@ namespace GOATracer.Raytracer
         public Camera Camera { get; set; }
         public ImportedSceneDescription SceneDescription { get; set; }
         public List<ObjectFace> FacePoints { get; set; }
+        public Octree SceneOctree { get; set; }
+
 
         // --- Store loaded textures here ---
         public Dictionary<string, Texture> TextureCache { get; set; } = new Dictionary<string, Texture>();
@@ -34,6 +36,9 @@ namespace GOATracer.Raytracer
 
             // --- Load the textures when the Scene is created ---
             LoadTextures();
+
+            BuildOctree();
+
         }
 
         // Helper to load all textures mentioned in the materials
@@ -57,7 +62,36 @@ namespace GOATracer.Raytracer
             }
         }
 
-        // --- NEW: The function your Raytracer is trying to call ---
+        private void BuildOctree()
+        {
+            Console.WriteLine("Building Octree...");
+            List<Triangle> allTriangles = new List<Triangle>();
+
+            foreach (var face in this.FacePoints)
+            {
+                if (face.Indices == null || face.Indices.Count < 3) continue;
+
+                var fv0 = face.Indices[0];
+                Vector3 v0 = SceneDescription.VertexPoints[fv0.VertexIndex - 1];
+
+                // Triangulation loop
+                for (int i = 1; i < face.Indices.Count - 1; i++)
+                {
+                    var fv1 = face.Indices[i];
+                    var fv2 = face.Indices[i + 1];
+
+                    Vector3 v1 = SceneDescription.VertexPoints[fv1.VertexIndex - 1];
+                    Vector3 v2 = SceneDescription.VertexPoints[fv2.VertexIndex - 1];
+
+                    // Pass fv0, fv1, fv2 to the constructor
+                    allTriangles.Add(new Triangle(v0, v1, v2, fv0, fv1, fv2, face));
+                }
+            }
+
+            this.SceneOctree = new Octree(allTriangles);
+            Console.WriteLine($"Octree built with {allTriangles.Count} triangles.");
+        }
+
         public Vector3 GetMaterialColorForFace(ObjectFace face, FaceVertex fv0, FaceVertex fv1, FaceVertex fv2, float u, float v, ObjectMaterial materialProps)
         {
             // 1. Check if we have a texture loaded for this material

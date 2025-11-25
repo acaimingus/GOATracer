@@ -4,7 +4,7 @@ using System;
 using System.Numerics;
 
 
-// Source: https://www.youtube.com/watch?v=mTOllvinv-Uhttps://www.youtube.com/watch?v=mTOllvinv-U
+// Source: https://www.youtube.com/watch?v=mTOllvinv-U
 // https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle/barycentric-coordinates
 namespace GOATracer.Raytracer
 {
@@ -81,84 +81,60 @@ namespace GOATracer.Raytracer
             }
         }
 
-        // Intersection of ray with scene objects, returns normal, material constant and point of intersection
         public bool intersect(Vector3 rayOrigin, Vector3 rayDirection, out Vector3 hitPoint, out Vector3 normal, out Vector3 material)
         {
-            float closestDistance = float.PositiveInfinity;
-            bool hitFound = false;
-
-            // Initialize output parameters to default values.
             hitPoint = Vector3.Zero;
             normal = Vector3.Zero;
-            material = Vector3.Zero; // Default material (black)
+            material = Vector3.Zero; // Default material
 
-            // Iterate through all renderable objects provided by the scene description.
-            foreach (var obj in scene.SceneDescription.ObjectDescriptions)
+            // Query the octree for the closest intersection
+            if (scene.SceneOctree.Intersect(rayOrigin, rayDirection, out Triangle hitTri, out float hitDistance, out float u, out float v))
             {
-                // Iterate through all faces that compose the current object.
-                foreach (var face in obj.FacePoints)
+                hitPoint = rayOrigin + rayDirection * hitDistance;
+
+                // Retrieve original face data from the hit triangle to access material and normal indices
+                FaceVertex fv0 = hitTri.FV0;
+                FaceVertex fv1 = hitTri.FV1;
+                FaceVertex fv2 = hitTri.FV2;
+                ObjectFace face = hitTri.OriginalFace;
+
+                // Check for normal indices and interpolate if available
+                bool hasNormals = scene.SceneDescription.NormalPoints != null &&
+                                  fv0.NormalIndex > 0 &&
+                                  fv1.NormalIndex > 0 &&
+                                  fv2.NormalIndex > 0;
+
+                if (hasNormals)
                 {
-                    if (face.Indices == null || face.Indices.Count < 3)
-                        continue;
+                    Vector3 n0 = scene.SceneDescription.NormalPoints[fv0.NormalIndex.Value - 1];
+                    Vector3 n1 = scene.SceneDescription.NormalPoints[fv1.NormalIndex.Value - 1];
+                    Vector3 n2 = scene.SceneDescription.NormalPoints[fv2.NormalIndex.Value - 1];
 
-                    FaceVertex fv0 = face.Indices[0];
-                    Vector3 v0 = scene.SceneDescription.VertexPoints[fv0.VertexIndex - 1];
-
-                    for (int i = 1; i < face.Indices.Count - 1; i++)
-                    {
-                        FaceVertex fv1 = face.Indices[i];
-                        FaceVertex fv2 = face.Indices[i + 1];
-
-                        Vector3 v1 = scene.SceneDescription.VertexPoints[fv1.VertexIndex - 1];
-                        Vector3 v2 = scene.SceneDescription.VertexPoints[fv2.VertexIndex - 1];
-
-                        if (RayTriangleIntersection(rayOrigin, rayDirection, v0, v1, v2, out float hitDistance, out float u, out float v))
-                        {
-                            if (hitDistance > 0.0001f && hitDistance < closestDistance)
-                            {
-                                hitFound = true;
-                                closestDistance = hitDistance;
-
-                                hitPoint = rayOrigin + rayDirection * hitDistance;
-
-                                bool hasNormals = scene.SceneDescription.NormalPoints != null &&
-                                                  fv0.NormalIndex > 0 &&
-                                                  fv1.NormalIndex > 0 &&
-                                                  fv2.NormalIndex > 0;
-
-                                if (hasNormals)
-                                {
-                                    Vector3 n0 = scene.SceneDescription.NormalPoints[fv0.NormalIndex.Value - 1];
-                                    Vector3 n1 = scene.SceneDescription.NormalPoints[fv1.NormalIndex.Value - 1];
-                                    Vector3 n2 = scene.SceneDescription.NormalPoints[fv2.NormalIndex.Value - 1];
-
-                                    normal = Vector3.Normalize((n0 * (1.0f - u - v)) + (n1 * u) + (n2 * v));
-                                }
-                                else
-                                {
-                                    normal = Vector3.Normalize(Vector3.Cross(v1 - v0, v2 - v0));
-                                }
-
-                                // --- Material Retrieval (with texture support) ---
-                                if (face.Material != null && scene.SceneDescription.Materials.TryGetValue(face.Material, out var matProps))
-                                {
-                                // Request scene to compute material color (will sample texture if available)
-                                    material = scene.GetMaterialColorForFace(face, fv0, fv1, fv2, u, v, matProps);
-                                }
-                                else
-                                {
-                                    material = new Vector3(0.5f, 0.5f, 0.5f);
-                                }
-                            }
-                        }
-                    }
+                    normal = Vector3.Normalize((n0 * (1.0f - u - v)) + (n1 * u) + (n2 * v));
                 }
+                else
+                {
+                    // Fallback to geometric normal
+                    normal = Vector3.Normalize(Vector3.Cross(hitTri.V1 - hitTri.V0, hitTri.V2 - hitTri.V0));
+                }
+
+                // Calculate material color (handles textures if present)
+                if (face.Material != null && scene.SceneDescription.Materials.TryGetValue(face.Material, out var matProps))
+                {
+                    material = scene.GetMaterialColorForFace(face, fv0, fv1, fv2, u, v, matProps);
+                }
+                else
+                {
+                    material = new Vector3(0.5f, 0.5f, 0.5f);
+                }
+
+                return true;
             }
 
-            return hitFound;
+            return false;
         }
 
-        private bool RayTriangleIntersection(Vector3 rayOrigin, Vector3 rayDirection, Vector3 v0, Vector3 v1, Vector3 v2, out float hitDistance, out float u, out float v)
+        public static bool RayTriangleIntersection(Vector3 rayOrigin, Vector3 rayDirection, Vector3 v0, Vector3 v1, Vector3 v2, out float hitDistance, out float u, out float v)
         {
             hitDistance = 0;
             u = 0;
@@ -216,7 +192,7 @@ namespace GOATracer.Raytracer
             float specularFactor = (float)Math.Pow(Math.Max(0.0f, Vector3.Dot(viewDir, reflectDir)), shininess);
             Vector3 specular = specularColor * lightColor * specularFactor;
 
-            // --- 6. Combine all components ---
+            // Combine all components
             Vector3 finalColor = ambient + diffuse + specular;
 
             // Clamp the color to be between 0.0 and 1.0
