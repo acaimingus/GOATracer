@@ -75,6 +75,8 @@ public partial class MainWindow : Window
                     // Kill previous renderer if present (GC cleanup) and create a new renderer
                     RenderPanel.Children.Clear();
                     RenderPanel.Children.Add(_previewRenderer);
+                    
+                    SetupLightListeners(vm);
                 }
             }
         }
@@ -140,5 +142,50 @@ public partial class MainWindow : Window
         var previewRenderer = (PreviewRenderer)RenderPanel.Children[0];
         // Use the mouselook
         previewRenderer.ApplyMouseLook((float)pos.X, (float)pos.Y);
+    }
+    
+    private void SetupLightListeners(MainWindowViewModel vm)
+    {
+        vm.EnabledLights.CollectionChanged += OnLightsCollectionChanged;
+        
+        foreach (var light in vm.EnabledLights)
+        {
+            light.PropertyChanged += OnLightPropertyChanged;
+        }
+    }
+    
+    private void OnLightsCollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (e.NewItems != null)
+        {
+            foreach (LightViewModel light in e.NewItems)
+            {
+                light.PropertyChanged += OnLightPropertyChanged;
+            }
+        }
+        
+        if (e.OldItems != null)
+        {
+            foreach (LightViewModel light in e.OldItems)
+            {
+                light.PropertyChanged -= OnLightPropertyChanged;
+            }
+        }
+
+        UpdateRendererLights();
+    }
+
+    private void OnLightPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        UpdateRendererLights();
+    }
+
+    private void UpdateRendererLights()
+    {
+        if (DataContext is not MainWindowViewModel vm) return;
+        
+        var lights = vm.EnabledLights.Select(l => l.Model).ToList();
+        
+        _previewRenderer.UpdateLights(lights);
     }
 }
