@@ -22,11 +22,13 @@ public partial class MainWindow : Window
         InitializeComponent();
         this.DataContext = new MainWindowViewModel();
     }
+
     // Event handler for the Exit menu option, closes the application when clicked
     private void ExitOptionClicked(object? sender, RoutedEventArgs e)
     {
         this.Close();
     }
+
     /// <summary>
     /// Handler method for the Import option
     /// </summary>
@@ -36,7 +38,7 @@ public partial class MainWindow : Window
     {
         // Clear previous log messages
         LogOutputTextBlock.Text = "";
-        
+
         // Get the parent window to enable file dialog access
         // Source: https://docs.avaloniaui.net/docs/basics/user-interface/file-dialogs
         var topLevel = TopLevel.GetTopLevel(this);
@@ -61,10 +63,10 @@ public partial class MainWindow : Window
             // Extract the local file path from the selected file
             var filePath = files[0].Path.LocalPath;
             await Dispatcher.UIThread.InvokeAsync(() => { }, DispatcherPriority.Render);
-            
+
             // Notify the user of the import starting
             LogOutputTextBlock.Text += "Importing " + filePath + "...\n\n";
-                
+
             // Import the .obj file and convert it into our scene data structure
             var sceneDescription = ObjImporter.ImportModel(filePath);
 
@@ -74,6 +76,7 @@ public partial class MainWindow : Window
                 if (DataContext is MainWindowViewModel vm)
                 {
                     var cameraSettings = new CameraSettingsBinding();
+                    SetupCameraBindings(vm, cameraSettings);
 
                     // Collect the lights specified by the user
                     var lights = vm.EnabledLights.Select(sceneLight => sceneLight.Model).ToList();
@@ -81,9 +84,9 @@ public partial class MainWindow : Window
                     // Kill previous renderer if present (GC cleanup) and create a new renderer
                     RenderPanel.Children.Clear();
                     RenderPanel.Children.Add(_previewRenderer);
-                    
+
                     SetupLightListeners(vm);
-                    
+
                     // Notify the user that the import was successful
                     LogOutputTextBlock.Text += "Import was successful! Check output.log for more details.";
                 }
@@ -152,18 +155,19 @@ public partial class MainWindow : Window
         // Use the mouselook
         previewRenderer.ApplyMouseLook((float)pos.X, (float)pos.Y);
     }
-    
+
     private void SetupLightListeners(MainWindowViewModel vm)
     {
         vm.EnabledLights.CollectionChanged += OnLightsCollectionChanged;
-        
+
         foreach (var light in vm.EnabledLights)
         {
             light.PropertyChanged += OnLightPropertyChanged;
         }
     }
-    
-    private void OnLightsCollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+
+    private void OnLightsCollectionChanged(object? sender,
+        System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
     {
         if (e.NewItems != null)
         {
@@ -172,7 +176,7 @@ public partial class MainWindow : Window
                 light.PropertyChanged += OnLightPropertyChanged;
             }
         }
-        
+
         if (e.OldItems != null)
         {
             foreach (LightViewModel light in e.OldItems)
@@ -183,7 +187,7 @@ public partial class MainWindow : Window
 
         UpdateRendererLights();
     }
-    
+
     private void OnLightPropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         UpdateRendererLights();
@@ -192,9 +196,69 @@ public partial class MainWindow : Window
     private void UpdateRendererLights()
     {
         if (DataContext is not MainWindowViewModel vm) return;
-        
+
         var lights = vm.EnabledLights.Select(l => l.Model).ToList();
-        
+
         _previewRenderer.UpdateLights(lights);
+    }
+
+    private void SetupCameraBindings(MainWindowViewModel vm, CameraSettingsBinding cameraSettings)
+    {
+        cameraSettings.PositionX = (float)vm.CameraPositionX;
+        cameraSettings.PositionY = (float)vm.CameraPositionY;
+        cameraSettings.PositionZ = (float)vm.CameraPositionZ;
+        cameraSettings.RotationX = (float)vm.CameraRotationX;
+        cameraSettings.RotationY = (float)vm.CameraRotationY;
+        cameraSettings.RotationZ = (float)vm.CameraRotationZ;
+
+        vm.PropertyChanged += (_, e) =>
+        {
+            switch (e.PropertyName)
+            {
+                case nameof(MainWindowViewModel.CameraPositionX):
+                    cameraSettings.PositionX = (float)vm.CameraPositionX;
+                    break;
+                case nameof(MainWindowViewModel.CameraPositionY):
+                    cameraSettings.PositionY = (float)vm.CameraPositionY;
+                    break;
+                case nameof(MainWindowViewModel.CameraPositionZ):
+                    cameraSettings.PositionZ = (float)vm.CameraPositionZ;
+                    break;
+                case nameof(MainWindowViewModel.CameraRotationX):
+                    cameraSettings.RotationX = (float)vm.CameraRotationX;
+                    break;
+                case nameof(MainWindowViewModel.CameraRotationY):
+                    cameraSettings.RotationY = (float)vm.CameraRotationY;
+                    break;
+                case nameof(MainWindowViewModel.CameraRotationZ):
+                    cameraSettings.RotationZ = (float)vm.CameraRotationZ;
+                    break;
+            }
+        };
+
+        cameraSettings.PropertyChanged += (_, e) =>
+        {
+            switch (e.PropertyName)
+            {
+                case nameof(CameraSettingsBinding.PositionX):
+                    vm.CameraPositionX = cameraSettings.PositionX;
+                    break;
+                case nameof(CameraSettingsBinding.PositionY):
+                    vm.CameraPositionY = cameraSettings.PositionY;
+                    break;
+                case nameof(CameraSettingsBinding.PositionZ):
+                    vm.CameraPositionZ = cameraSettings.PositionZ;
+                    break;
+                case nameof(CameraSettingsBinding.RotationX):
+                    vm.CameraRotationX = cameraSettings.RotationX;
+                    break;
+                case nameof(CameraSettingsBinding.RotationY):
+                    vm.CameraRotationY = cameraSettings.RotationY;
+                    break;
+                case nameof(CameraSettingsBinding.RotationZ):
+                    vm.CameraRotationZ = cameraSettings.RotationZ;
+                    break;
+            }
+        };
     }
 }
