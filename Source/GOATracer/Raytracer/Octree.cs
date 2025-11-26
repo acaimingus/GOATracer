@@ -30,6 +30,16 @@ namespace GOATracer.Raytracer
             root = new OctreeNode(new AABB(min, max), allTriangles, 0);
         }
 
+        /// <summary>
+        /// Intersect ray with the octree to find the closest triangle hit. Returns true if a hit is found.
+        /// </summary>
+        /// <param name="rayOrigin"></param>
+        /// <param name="rayDir"></param>
+        /// <param name="hitTriangle"></param>
+        /// <param name="hitDistance"></param>
+        /// <param name="uOut"></param>
+        /// <param name="vOut"></param>
+        /// <returns></returns>
         public bool Intersect(Vector3 rayOrigin, Vector3 rayDir, out Triangle hitTriangle, out float hitDistance, out float uOut, out float vOut)
         {
             hitTriangle = null;
@@ -119,7 +129,13 @@ namespace GOATracer.Raytracer
             }
         }
 
-        // Check box intersection
+        /// <summary>
+        /// Check box intersection. 
+        /// </summary>
+        /// <param name="b"></param>
+        /// <param name="min"></param>
+        /// <param name="max"></param>
+        /// <returns></returns>
         private bool BoxIntersectsBox(AABB b, Vector3 min, Vector3 max)
         {
             if (b.Max.X < min.X || b.Min.X > max.X) return false;
@@ -128,7 +144,16 @@ namespace GOATracer.Raytracer
             return true;
         }
 
-        // Traversal
+        /// <summary>
+        /// Traversal
+        /// </summary>
+        /// <param name="rayOrigin"></param>
+        /// <param name="rayDir"></param>
+        /// <param name="closestTri"></param>
+        /// <param name="closestDist"></param>
+        /// <param name="uOut"></param>
+        /// <param name="vOut"></param>
+        /// <returns></returns>
         public bool Intersect(Vector3 rayOrigin, Vector3 rayDir, ref Triangle closestTri, ref float closestDist, ref float uOut, ref float vOut)
         {
             // 1. Does the ray hit this node at all?

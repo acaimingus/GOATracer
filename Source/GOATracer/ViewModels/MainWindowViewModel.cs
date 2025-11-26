@@ -285,7 +285,7 @@ namespace GOATracer.ViewModels
 
                     // Render
                     GOATracer.Raytracer.Raytracer raytracer = new GOATracer.Raytracer.Raytracer(scene);
-                    byte[] pixelData = raytracer.render();
+                    byte[] pixelData = raytracer.Render();
 
                     // Display result
                     var format = PixelFormat.Bgra8888;

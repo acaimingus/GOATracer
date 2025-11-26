@@ -15,7 +15,7 @@ namespace GOATracer.Raytracer
         public Octree SceneOctree { get; set; }
 
 
-        // --- Store loaded textures here ---
+        // store loaded textures here
         public Dictionary<string, Texture> TextureCache { get; set; } = new Dictionary<string, Texture>();
         public int ImageHeight { get; set; }
         public int ImageWidth { get; set; }
@@ -34,14 +34,16 @@ namespace GOATracer.Raytracer
                 ? sceneDescription.ObjectDescriptions.SelectMany(o => o.FacePoints).ToList()
                 : new List<ObjectFace>();
 
-            // --- Load the textures when the Scene is created ---
+            // load all textures referenced in the materials when constructing the scene
             LoadTextures();
 
             BuildOctree();
 
         }
 
-        // Helper to load all textures mentioned in the materials
+        /// <summary>
+        /// Helper to load all textures mentioned in the materials.
+        /// </summary>
         private void LoadTextures()
         {
             if (SceneDescription.Materials == null) return;
@@ -62,6 +64,9 @@ namespace GOATracer.Raytracer
             }
         }
 
+        /// <summary>
+        /// Builds the octree for the scene based on the triangles defined in the faces.
+        /// </summary>
         private void BuildOctree()
         {
             Console.WriteLine("Building Octree...");
@@ -92,6 +97,17 @@ namespace GOATracer.Raytracer
             Console.WriteLine($"Octree built with {allTriangles.Count} triangles.");
         }
 
+        /// <summary>
+        /// Gets the material color for a given face at the specified barycentric coordinates (u, v).
+        /// </summary>
+        /// <param name="face"></param>
+        /// <param name="fv0"></param>
+        /// <param name="fv1"></param>
+        /// <param name="fv2"></param>
+        /// <param name="u"></param>
+        /// <param name="v"></param>
+        /// <param name="materialProps"></param>
+        /// <returns></returns>
         public Vector3 GetMaterialColorForFace(ObjectFace face, FaceVertex fv0, FaceVertex fv1, FaceVertex fv2, float u, float v, ObjectMaterial materialProps)
         {
             // 1. Check if we have a texture loaded for this material

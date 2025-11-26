@@ -17,7 +17,11 @@ namespace GOATracer.Raytracer
             this.scene = scene;
         }
 
-        public byte[] render()
+        /// <summary>
+        /// Render the scene and return a BGRA8888 byte array. 
+        /// </summary>
+        /// <returns></returns>
+        public byte[] Render()
         {
             byte[] buffer = new byte[scene.ImageWidth * scene.ImageHeight * 4];
             int width = scene.ImageWidth;
@@ -32,7 +36,7 @@ namespace GOATracer.Raytracer
                     Vector3 rayDirection = scene.Camera.GetRayDirection(x, y, scene.ImageWidth, scene.ImageHeight);
 
                     // Trace the ray through the scene
-                    Vector3 color = traceRay(scene.Camera.Position, rayDirection, scene);
+                    Vector3 color = TraceRay(scene.Camera.Position, rayDirection, scene);
 
                     // Get the starting index for this pixel in the 1D buffer
                     int index = (y * width + x) * 4;
@@ -47,11 +51,17 @@ namespace GOATracer.Raytracer
             return buffer;
         }
 
-        // Trace a ray from support vector sv in direction dv through the scene and return the color
-        public Vector3 traceRay(Vector3 sv, Vector3 dv, Scene scene)
+        /// <summary>
+        /// Trace a ray from support vector sv in direction dv through the scene and return the color
+        /// </summary>
+        /// <param name="sv"></param>
+        /// <param name="dv"></param>
+        /// <param name="scene"></param>
+        /// <returns></returns>
+        public Vector3 TraceRay(Vector3 sv, Vector3 dv, Scene scene)
         {
             // Find the first intersection with the scene
-            if (intersect(sv, dv, out Vector3 intersectionPoint, out Vector3 normal, out Vector3 materialDiffuseColor))
+            if (Intersect(sv, dv, out Vector3 intersectionPoint, out Vector3 normal, out Vector3 materialDiffuseColor))
             {
                 // 1. Start with base Ambient Lighting (so pitch black shadows are visible)
                 Vector3 finalColor = materialDiffuseColor * 0.1f;
@@ -69,7 +79,7 @@ namespace GOATracer.Raytracer
                     bool isInShadow = false;
 
                     // Check if something is blocking this specific light
-                    if (intersect(shadowRayOrigin, lightDirection, out Vector3 shadowHitPoint, out _, out _))
+                    if (Intersect(shadowRayOrigin, lightDirection, out Vector3 shadowHitPoint, out _, out _))
                     {
                         // Only a shadow if the blocker is CLOSER than the light itself
                         float distanceToBlocker = Vector3.Distance(shadowRayOrigin, shadowHitPoint);
@@ -82,7 +92,7 @@ namespace GOATracer.Raytracer
                     // 3. If not in shadow, add this light's contribution
                     if (!isInShadow)
                     {
-                        finalColor += shade(normal, materialDiffuseColor, intersectionPoint, lightDirection, light.Color, scene);
+                        finalColor += Shade(normal, materialDiffuseColor, intersectionPoint, lightDirection, light.Color, scene);
                     }
                 }
 
@@ -96,7 +106,16 @@ namespace GOATracer.Raytracer
             }
         }
 
-        public bool intersect(Vector3 rayOrigin, Vector3 rayDirection, out Vector3 hitPoint, out Vector3 normal, out Vector3 material)
+        /// <summary>
+        /// Intersect a ray with the scene and return hit information. 
+        /// </summary>
+        /// <param name="rayOrigin"></param>
+        /// <param name="rayDirection"></param>
+        /// <param name="hitPoint"></param>
+        /// <param name="normal"></param>
+        /// <param name="material"></param>
+        /// <returns></returns>
+        public bool Intersect(Vector3 rayOrigin, Vector3 rayDirection, out Vector3 hitPoint, out Vector3 normal, out Vector3 material)
         {
             hitPoint = Vector3.Zero;
             normal = Vector3.Zero;
@@ -149,6 +168,18 @@ namespace GOATracer.Raytracer
             return false;
         }
 
+        /// <summary>
+        /// Ray-Triangle intersection using Möller–Trumbore algorithm. 
+        /// </summary>
+        /// <param name="rayOrigin"></param>
+        /// <param name="rayDirection"></param>
+        /// <param name="v0"></param>
+        /// <param name="v1"></param>
+        /// <param name="v2"></param>
+        /// <param name="hitDistance"></param>
+        /// <param name="u"></param>
+        /// <param name="v"></param>
+        /// <returns></returns>
         public static bool RayTriangleIntersection(Vector3 rayOrigin, Vector3 rayDirection, Vector3 v0, Vector3 v1, Vector3 v2, out float hitDistance, out float u, out float v)
         {
             hitDistance = 0;
@@ -188,7 +219,17 @@ namespace GOATracer.Raytracer
             return hitDistance > 0.000001f;
         }
 
-        public Vector3 shade(Vector3 normal, Vector3 materialDiffuseColor, Vector3 intersectionPoint, Vector3 lightDirection, Vector3 lightColor, Scene scene)
+        /// <summary>
+        /// Shade the intersection point using Phong reflection model. 
+        /// </summary>
+        /// <param name="normal"></param>
+        /// <param name="materialDiffuseColor"></param>
+        /// <param name="intersectionPoint"></param>
+        /// <param name="lightDirection"></param>
+        /// <param name="lightColor"></param>
+        /// <param name="scene"></param>
+        /// <returns></returns>
+        public Vector3 Shade(Vector3 normal, Vector3 materialDiffuseColor, Vector3 intersectionPoint, Vector3 lightDirection, Vector3 lightColor, Scene scene)
         {
             Vector3 diffuseColor = materialDiffuseColor;
             Vector3 specularColor = new Vector3(1.0f, 1.0f, 1.0f);

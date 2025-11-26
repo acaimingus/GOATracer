@@ -14,7 +14,13 @@ namespace GOATracer.Raytracer
             Max = max;
         }
 
-        // Checks if a ray intersects the box (Slab method)
+        /// <summary>
+        /// Checks if a ray intersects the box (Slab method). Returns true if there is an intersection and sets tMinVal to the distance to the intersection.
+        /// </summary>
+        /// <param name="rayOrigin"></param>
+        /// <param name="rayDir"></param>
+        /// <param name="tMinVal"></param>
+        /// <returns></returns>
         public bool Intersect(Vector3 rayOrigin, Vector3 rayDir, out float tMinVal)
         {
             tMinVal = 0;
@@ -49,7 +55,10 @@ namespace GOATracer.Raytracer
             return tmax > 0;
         }
 
-        // Helper method: Expands the box to include a point
+        /// <summary>
+        /// Helper method: Expands the bounding-box to include a point
+        /// </summary>
+        /// <param name="p"></param>
         public void Grow(Vector3 p)
         {
             Min = Vector3.Min(Min, p);

@@ -48,6 +48,12 @@ namespace GOATracer.Raytracer
             }
         }
 
+        /// <summary>
+        /// Get the color of the pixel at normalized coordinates (u, v).
+        /// </summary>
+        /// <param name="u"></param>
+        /// <param name="v"></param>
+        /// <returns></returns>
         public Vector3 GetPixel(float u, float v)
         {
             if (_pixels == null || _pixels.Length == 0) return new Vector3(1, 0, 1);
