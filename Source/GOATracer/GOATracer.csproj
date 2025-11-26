@@ -11,9 +11,6 @@
         <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
     </PropertyGroup>
     <ItemGroup>
-      <None Remove="Assets\teapot.png" />
-    </ItemGroup>
-    <ItemGroup>
       <AvaloniaXaml Remove="bin\**" />
       <AvaloniaXaml Remove="obj\**" />
       <Compile Remove="bin\**" />
@@ -47,17 +44,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Shaders\lighting.frag">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="Shaders\shader.frag">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="Shaders\shader.vert">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
+        <EmbeddedResource Include="Shaders\**\*" />
     </ItemGroup>
-
+    
     <ItemGroup>
       <Folder Include="Assets\" />
     </ItemGroup>

@@ -9,7 +9,6 @@ using OpenTK.Graphics.ES30;
 using OpenTK.Mathematics;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 
 namespace GOATracer.Preview;
@@ -182,15 +181,13 @@ public class PreviewRenderer : OpenGlControlBase
         // To see which triangles are in front of others
         GL.Enable(EnableCap.DepthTest);
         
-        // Combine paths safely to make application independent of cwd
-        var baseDir = AppContext.BaseDirectory;
-        var vertPath = Path.Combine(baseDir, "Shaders", "shader.vert");
-        var lightingFragPath = Path.Combine(baseDir, "Shaders", "lighting.frag");
-        var shaderFragPath = Path.Combine(baseDir, "Shaders", "shader.frag");
+        const string vertResource = "GOATracer.Shaders.shader.vert";
+        const string lightingFragResource = "GOATracer.Shaders.lighting.frag";
+        const string lampFragResource = "GOATracer.Shaders.shader.frag";
 
         // Load the shaders
-        _lightingShader = RenderResourceManager.LoadShader(vertPath, lightingFragPath);
-        _lampShader = RenderResourceManager.LoadShader(vertPath, shaderFragPath);
+        _lightingShader = RenderResourceManager.LoadShader(vertResource, lightingFragResource);
+        _lampShader = RenderResourceManager.LoadShader(vertResource, lampFragResource);
 
         // Split the vertices by texture
         var verticesByTexture = _renderResourceManager.GetVerticesByTexture();
