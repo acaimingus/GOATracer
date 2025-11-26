@@ -6,12 +6,12 @@
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <PublishTrimmed>true</PublishTrimmed>
+        <TrimMode>link</TrimMode>
+        <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
     </PropertyGroup>
     <ItemGroup>
       <None Remove="Assets\teapot.png" />
-    </ItemGroup>
-    <ItemGroup>
-      <AvaloniaResource Include="Assets\teapot.png" />
     </ItemGroup>
     <ItemGroup>
       <AvaloniaXaml Remove="bin\**" />
@@ -56,5 +56,9 @@
       <None Update="Shaders\shader.vert">
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Assets\" />
     </ItemGroup>
 </Project>
