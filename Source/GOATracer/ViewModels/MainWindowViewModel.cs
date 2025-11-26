@@ -1,11 +1,20 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using Avalonia;
+using Avalonia.Controls;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GOATracer.Importer.Obj;
+using GOATracer.Lights;
+using GOATracer.Models;
+using GOATracer.Raytracer;
 using GOATracer.Views;
+using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
-using GOATracer.Lights;
-using GOATracer.Models;
+using System.Runtime.InteropServices;
 
 namespace GOATracer.ViewModels
 {
@@ -50,6 +59,16 @@ namespace GOATracer.ViewModels
         /// Counter for the light amount
         /// </summary>
         private int _lightCounter = 0;
+
+        /// <summary>
+        /// Our imported scene description from the .obj importer
+        /// </summary>
+        private ImportedSceneDescription? _loadedScene;
+        public ImportedSceneDescription? LoadedScene
+        {
+            get => _loadedScene;
+            set => SetProperty(ref _loadedScene, value);
+        }
 
         /// <summary>
         /// Property for the X position of the camera in the scene.
@@ -141,7 +160,7 @@ namespace GOATracer.ViewModels
         private void AddNewLight()
         {
             _lightCounter++;
-            var newLightModel = new Light(_lightCounter);
+            var newLightModel = new Lights.Light(_lightCounter);
             RayTracerModel.Lights.Add(newLightModel);
 
             var newLightVm = new LightViewModel(newLightModel, DeleteLight);
@@ -186,9 +205,105 @@ namespace GOATracer.ViewModels
             switch (action)
             {
                 case "Render":
-                    var renderWindow = new RenderWindow();
-                    renderWindow.Show();
+                    // Safety Check
+                    if (LoadedScene == null)
+                    {
+                        return;
+                    }
+
+                    // Lights: Load from UI list
+                    List<GOATracer.Raytracer.Light> sceneLights = new List<GOATracer.Raytracer.Light>();
+
+                    foreach (var lightVm in EnabledLights)
+                    {
+                        var uiLight = lightVm.Model;
+
+                        // Position from UI
+                        var position = new System.Numerics.Vector3(uiLight.X, uiLight.Y, uiLight.Z);
+
+                        // Default values
+                        double intensity = 100.0;
+                        var color = new System.Numerics.Vector3(1.0f, 1.0f, 1.0f); // White
+
+                        var rtLight = new GOATracer.Raytracer.Light(position, intensity, color);
+                        sceneLights.Add(rtLight);
+                    }
+
+                    // Camera Position
+                    var camPos = new System.Numerics.Vector3(
+                        (float)RayTracerModel.CameraPositionX,
+                        (float)RayTracerModel.CameraPositionY,
+                        (float)RayTracerModel.CameraPositionZ
+                    );
+
+                    // Camera Direction
+
+                    // Inputs: Swap X and Y inputs to fix axis mapping
+                    // RotationX -> Yaw (Side), RotationY -> Pitch (Height)
+                    float rawYaw = (float)RayTracerModel.CameraRotationX;
+                    float rawPitch = (float)RayTracerModel.CameraRotationY;
+
+                    // Apply Offsets
+                    float yawOffset = -90.0f;   // Align 0 degrees to forward (-Z)
+                    float pitchOffset = 90.0f;  // Fix "floor look" start position
+
+                    // Calculate final degrees
+                    float yawDegrees = rawYaw + yawOffset;
+                    float pitchDegrees = rawPitch + pitchOffset;
+
+                    // Convert to Radians
+                    float yawRad = yawDegrees * (float)(Math.PI / 180.0);
+                    float pitchRad = pitchDegrees * (float)(Math.PI / 180.0);
+
+                    // Calculate Vector (Y-Up System)
+                    float dirX = (float)(Math.Cos(pitchRad) * Math.Cos(yawRad));
+                    float dirY = (float)(Math.Sin(pitchRad));
+                    float dirZ = (float)(Math.Cos(pitchRad) * Math.Sin(yawRad));
+
+                    var camDir = new System.Numerics.Vector3(dirX, dirY, dirZ);
+
+                    // Normalize and safety check
+                    if (camDir.LengthSquared() < 0.001f) camDir = new System.Numerics.Vector3(0, 0, -1);
+                    camDir = System.Numerics.Vector3.Normalize(camDir);
+
+                    // Create Camera Object
+                    GOATracer.Raytracer.Camera camera = new GOATracer.Raytracer.Camera(
+                        camPos,
+                        camDir,
+                        90,
+                        0
+                    );
+
+                    // Create Scene
+                    GOATracer.Raytracer.Scene scene = new GOATracer.Raytracer.Scene(
+                        sceneLights,
+                        camera,
+                        LoadedScene,
+                        (int)RayTracerModel.ImageWidth,
+                        (int)RayTracerModel.ImageHeight
+                    );
+
+                    // Render
+                    GOATracer.Raytracer.Raytracer raytracer = new GOATracer.Raytracer.Raytracer(scene);
+                    byte[] pixelData = raytracer.render();
+
+                    // Display result
+                    var format = PixelFormat.Bgra8888;
+                    var bitmap = new WriteableBitmap(
+                        new PixelSize(scene.ImageWidth, scene.ImageHeight),
+                        new Avalonia.Vector(96, 96),
+                        format,
+                        AlphaFormat.Premul);
+
+                    using (var frameBuffer = bitmap.Lock())
+                    {
+                        Marshal.Copy(pixelData, 0, frameBuffer.Address, pixelData.Length);
+                    }
+
+                    var raytraceWindow = new GOATracer.Views.RaytraceWindow(bitmap);
+                    raytraceWindow.Show();
                     break;
+
                 case "AddLight":
                     AddNewLight();
                     break;
