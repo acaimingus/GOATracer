@@ -61,7 +61,7 @@ namespace GOATracer.Preview
             // Slow down camera speed
             if (_keys.Contains(Key.O))
             {
-                _cameraSpeed -= 0.01f;
+                _cameraSpeed /= 1.1f;
 
                 // Bound the minimum speed of the camera to 0.1f
                 if (_cameraSpeed < 0.1f)
@@ -73,7 +73,7 @@ namespace GOATracer.Preview
             // Speed up camera speed
             if (_keys.Contains(Key.P))
             {
-                _cameraSpeed += 0.01f;
+                _cameraSpeed *= 1.1f;
             }
 
             // Move camera forward
