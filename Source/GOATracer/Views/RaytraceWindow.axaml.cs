@@ -1,7 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 
-namespace GOATracer.Raytracer;
+namespace GOATracer.Views;
 
 public partial class RaytraceWindow : Window
 {

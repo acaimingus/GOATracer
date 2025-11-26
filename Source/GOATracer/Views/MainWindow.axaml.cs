@@ -81,6 +81,9 @@ public partial class MainWindow : Window
             {
                 if (DataContext is MainWindowViewModel vm)
                 {
+                    // Set the loaded scene in the view model
+                    vm.LoadedScene = sceneDescription;
+
                     var cameraSettings = new CameraSettingsBinding();
                     SetupCameraBindings(vm, cameraSettings);
 

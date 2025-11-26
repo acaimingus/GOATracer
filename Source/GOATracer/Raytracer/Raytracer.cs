@@ -53,30 +53,45 @@ namespace GOATracer.Raytracer
             // Find the first intersection with the scene
             if (intersect(sv, dv, out Vector3 intersectionPoint, out Vector3 normal, out Vector3 materialDiffuseColor))
             {
-                // --- SHADOW CHECK ---
-                // Get direction to the first light
-                Vector3 lightDirection = Vector3.Normalize(scene.Lights[0].Position - intersectionPoint);
+                // 1. Start with base Ambient Lighting (so pitch black shadows are visible)
+                Vector3 finalColor = materialDiffuseColor * 0.1f;
 
-                // Move the shadow ray origin slightly off the surface to avoid "shadow acne"
-                Vector3 shadowRayOrigin = intersectionPoint + normal * 0.0001f;
+                // 2. Loop through EVERY light source
+                foreach (var light in scene.Lights)
+                {
+                    // --- SHADOW CHECK (Per Light) ---
+                    Vector3 lightDirection = Vector3.Normalize(light.Position - intersectionPoint);
+                    float distanceToLight = Vector3.Distance(light.Position, intersectionPoint);
 
-                // Check if another object is between this point and the light
-                if (intersect(shadowRayOrigin, lightDirection, out _, out _, out _))
-                {
-                    // IN SHADOW: Return only a dim ambient light
-                    // We use the material color multiplied by a dark ambient factor
-                    Vector3 ambientLight = new Vector3(0.1f, 0.1f, 0.1f);
-                    return materialDiffuseColor * ambientLight;
+                    // Move origin slightly off surface to avoid "shadow acne"
+                    Vector3 shadowRayOrigin = intersectionPoint + normal * 0.0001f;
+
+                    bool isInShadow = false;
+
+                    // Check if something is blocking this specific light
+                    if (intersect(shadowRayOrigin, lightDirection, out Vector3 shadowHitPoint, out _, out _))
+                    {
+                        // Only a shadow if the blocker is CLOSER than the light itself
+                        float distanceToBlocker = Vector3.Distance(shadowRayOrigin, shadowHitPoint);
+                        if (distanceToBlocker < distanceToLight)
+                        {
+                            isInShadow = true;
+                        }
+                    }
+
+                    // 3. If not in shadow, add this light's contribution
+                    if (!isInShadow)
+                    {
+                        finalColor += shade(normal, materialDiffuseColor, intersectionPoint, lightDirection, light.Color, scene);
+                    }
                 }
-                else
-                {
-                    // NOT IN SHADOW: Compute the full Phong shading
-                    return shade(normal, materialDiffuseColor, intersectionPoint, lightDirection, scene);
-                }
+
+                // Clamp the result so it doesn't become "whiter than white"
+                return Vector3.Clamp(finalColor, Vector3.Zero, Vector3.One);
             }
             else
             {
-                // If the ray hits nothing, return the background color
+                // Background color
                 return new Vector3(0.0f, 0.1f, 0.3f);
             }
         }
@@ -173,30 +188,24 @@ namespace GOATracer.Raytracer
             return hitDistance > 0.000001f;
         }
 
-        public Vector3 shade(Vector3 normal, Vector3 materialDiffuseColor, Vector3 intersectionPoint, Vector3 lightDirection, Scene scene)
+        public Vector3 shade(Vector3 normal, Vector3 materialDiffuseColor, Vector3 intersectionPoint, Vector3 lightDirection, Vector3 lightColor, Scene scene)
         {
-            //materialDiffuseColor = new Vector3(0.8f, 0.8f, 0.8f);
-            Vector3 lightColor = scene.Lights[0].Color;
-
-            Vector3 ambientColor = materialDiffuseColor * 0.1f;
             Vector3 diffuseColor = materialDiffuseColor;
             Vector3 specularColor = new Vector3(1.0f, 1.0f, 1.0f);
             float shininess = 32.0f;
 
-            Vector3 ambient = ambientColor;
+            // Diffuse (Lambert)
             float diffuseFactor = Math.Max(0.0f, Vector3.Dot(normal, lightDirection));
             Vector3 diffuse = diffuseColor * lightColor * diffuseFactor;
 
+            // Specular (Phong)
             Vector3 viewDir = Vector3.Normalize(scene.Camera.Position - intersectionPoint);
             Vector3 reflectDir = Vector3.Reflect(-lightDirection, normal);
             float specularFactor = (float)Math.Pow(Math.Max(0.0f, Vector3.Dot(viewDir, reflectDir)), shininess);
             Vector3 specular = specularColor * lightColor * specularFactor;
 
-            // Combine all components
-            Vector3 finalColor = ambient + diffuse + specular;
-
-            // Clamp the color to be between 0.0 and 1.0
-            return Vector3.Clamp(finalColor, Vector3.Zero, Vector3.One);
+            // Return only Diffuse + Specular (Ambient is already added in traceRay)
+            return diffuse + specular;
         }
     }
 }
