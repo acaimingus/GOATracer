@@ -16,7 +16,7 @@ This tool allows users to load 3D `.obj` models, change lighting in real-time an
 - Built using the [Avalonia UI](https://avaloniaui.net/) framework to run cross-platform.
 - Utilizes [OpenTK](https://opentk.net/) to provide a fast preview of the scene before raytracing.
 - Support for loading `.obj` 3D model files.
-- Texture mapping support visibile in both the OpenTK preview and the final raytraced output.
+- Texture mapping support visible in both the OpenTK preview and the final raytraced output.
 - Interactive lighting and camera controls.
 - Lights can be defined, positioned and moved directly within the UI.
 
