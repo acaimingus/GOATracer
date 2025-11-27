@@ -1,6 +1,6 @@
 # Building Releases
 
-This document gives some tips how to build releases of GOATracer.
+This document gives some tips on how to build releases of GOATracer.
 
 For all the release builds the starting directory is the GOATracer solution directory.
 
