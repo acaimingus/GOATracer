@@ -29,7 +29,7 @@
   <Fragment>
     <ComponentGroup Id="AppComponents" Directory="INSTALLFOLDER">
       <Component>
-        <File Source="..\Build\GOATracer.exe" />
+        <File Source="..\bin\GOATracer.exe" />
       </Component>
       
       </ComponentGroup>

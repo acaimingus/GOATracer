@@ -105,7 +105,7 @@ wix extension add -g WixToolset.UI.wixext
 Build the avalonia app:
 
 ```bash
-dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o ../../Release/Windows/Build/
+dotnet publish -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o ../../Release/Windows/bin/
 ```
 
 Change to the Windows release directory:
