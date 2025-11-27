@@ -1,6 +1,6 @@
 # Building Releases
 
-This document gives some tips how to build releases of GOATracer.
+This document gives some tips on how to build releases of GOATracer.
 
 For all the release builds the starting directory is the GOATracer solution directory.
 
@@ -129,5 +129,5 @@ cd ../../Release/Windows
 Build the .msi package:
 
 ```bash
-wix build Package.wxs -ext WixToolset.UI.wixext -o ./Build/GOATracer.msi
+wix build Package.wxs -ext WixToolset.UI.wixext -o ./bin/GOATracer.msi
 ```

@@ -24,14 +24,12 @@ namespace GOATracer.Preview
             string LoadSource(string resourceName)
             {
                 var assembly = Assembly.GetExecutingAssembly();
-                
-
                 using (var stream = assembly.GetManifestResourceStream(resourceName))
                 {
                     if (stream == null)
                     { 
                         var existingResources = string.Join(", ", assembly.GetManifestResourceNames());
-                        throw new FileNotFoundException($"Eingebettete Ressource '{resourceName}' nicht gefunden! Verfügbar: {existingResources}");
+                        throw new FileNotFoundException($"Embedded resource '{resourceName}' not found! Available: {existingResources}");
                     }
 
                     using (var reader = new StreamReader(stream))
