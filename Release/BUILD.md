@@ -129,5 +129,5 @@ cd ../../Release/Windows
 Build the .msi package:
 
 ```bash
-wix build Package.wxs -ext WixToolset.UI.wixext -o ./Build/GOATracer.msi
+wix build Package.wxs -ext WixToolset.UI.wixext -o ./bin/GOATracer.msi
 ```
