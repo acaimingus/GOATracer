@@ -3,6 +3,7 @@
 # Build results
 bin/
 obj/
+Release/Windows/Build
 
 # User-specific files
 *.user
