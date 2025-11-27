@@ -45,6 +45,7 @@
 
     <ItemGroup>
         <EmbeddedResource Include="Shaders\**\*" />
+        <TrimmerRootAssembly Include="GOATracer" />
     </ItemGroup>
     
     <ItemGroup>
