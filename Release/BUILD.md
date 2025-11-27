@@ -5,12 +5,15 @@ This document gives some tips how to build releases of GOATracer.
 For all the release builds the starting directory is the GOATracer solution directory.
 
 ## Debian
+
 Create a folder for your release:
+
 ```bash
 mkdir -p ../../Release/Debian/<VERSION-NAME>
 ```
 
 Create necessary file structure for the .deb within your new folder:
+
 ```bash
 ── DEBIAN
 │   └── control (.deb control file, already present)
@@ -28,16 +31,19 @@ Create necessary file structure for the .deb within your new folder:
 ```
 
 Build for linux:
+
 ```bash
 dotnet publish -c Release -r linux-x64 --self-contained -p:PublishSingleFile=true -o ../../Release/Debian/<VERSION-NAME>/usr/lib/GOATracer/
 ```
 
 Copy the icon into the build folder:
+
 ```bash
 cp Assets/icon.ico ../../Release/Debian/<VERSION-NAME>/usr/lib/GOATracer/
 ```
 
 Open the launcher script and add the following contents:
+
 ```bash
 #!/bin/bash
 # use exec to not have the wrapper script staying as a separate process
@@ -46,6 +52,7 @@ exec /usr/lib/GOATracer/GOATracer "$@"
 ```
 
 Open the control file and add the following contents:
+
 ```bash
 Package: goatracer
 Version: <VERSION-NAME>
@@ -57,10 +64,12 @@ Maintainer: Your name <email@example.com>
 Description: A 3D scene raytracer.
 
 ```
+
 Make sure there is an empty line at the end.
 
 Open the desktop file and add the following contents:
-```
+
+```bash
 [Desktop Entry]
 Type=Application
 Name=GOATracer
@@ -72,6 +81,7 @@ Categories=Graphics;
 ```
 
 Make sure the files have the correct permissions:
+
 ```bash
 find ../../Release/Debian/<VERSION-NAME> -type d -exec chmod 755 {} \;
 find ../../Release/Debian/<VERSION-NAME> -type f -exec chmod 644 {} \;
@@ -80,11 +90,13 @@ chmod 755 ../../Release/Debian/<VERSION-NAME>/usr/bin/goatracer
 ```
 
 Change to the Debian Release directory:
+
 ```bash
 cd ../../Release/Debian/
 ```
 
 Package the .deb file:
+
 ```bash
 dpkg-deb --root-owner-group --build GOATracer-0.0.1-alpha-amd64
 ```
