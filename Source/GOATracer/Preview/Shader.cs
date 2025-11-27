@@ -24,8 +24,6 @@ namespace GOATracer.Preview
             string LoadSource(string resourceName)
             {
                 var assembly = Assembly.GetExecutingAssembly();
-                
-
                 using (var stream = assembly.GetManifestResourceStream(resourceName))
                 {
                     if (stream == null)
