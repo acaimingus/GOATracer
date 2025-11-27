@@ -3,7 +3,9 @@
 # Build results
 bin/
 obj/
-Release/Windows/Build
+
+# Debian release files
+Release/Debian/*
 
 # User-specific files
 *.user
