@@ -180,10 +180,14 @@ public class PreviewRenderer : OpenGlControlBase
 
         // To see which triangles are in front of others
         GL.Enable(EnableCap.DepthTest);
+        
+        const string vertResource = "GOATracer.Shaders.shader.vert";
+        const string lightingFragResource = "GOATracer.Shaders.lighting.frag";
+        const string lampFragResource = "GOATracer.Shaders.shader.frag";
 
         // Load the shaders
-        _lightingShader = RenderResourceManager.LoadShader("Shaders/shader.vert", "Shaders/lighting.frag");
-        _lampShader = RenderResourceManager.LoadShader("Shaders/shader.vert", "Shaders/shader.frag");
+        _lightingShader = RenderResourceManager.LoadShader(vertResource, lightingFragResource);
+        _lampShader = RenderResourceManager.LoadShader(vertResource, lampFragResource);
 
         // Split the vertices by texture
         var verticesByTexture = _renderResourceManager.GetVerticesByTexture();

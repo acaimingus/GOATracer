@@ -6,13 +6,10 @@
         <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <PublishTrimmed>true</PublishTrimmed>
+        <TrimMode>link</TrimMode>
+        <ApplicationIcon>Assets\icon.ico</ApplicationIcon>
     </PropertyGroup>
-    <ItemGroup>
-      <None Remove="Assets\teapot.png" />
-    </ItemGroup>
-    <ItemGroup>
-      <AvaloniaResource Include="Assets\teapot.png" />
-    </ItemGroup>
     <ItemGroup>
       <AvaloniaXaml Remove="bin\**" />
       <AvaloniaXaml Remove="obj\**" />
@@ -47,14 +44,11 @@
     </ItemGroup>
 
     <ItemGroup>
-      <None Update="Shaders\lighting.frag">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="Shaders\shader.frag">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
-      <None Update="Shaders\shader.vert">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </None>
+        <EmbeddedResource Include="Shaders\**\*" />
+        <TrimmerRootAssembly Include="GOATracer" />
+    </ItemGroup>
+    
+    <ItemGroup>
+      <Folder Include="Assets\" />
     </ItemGroup>
 </Project>

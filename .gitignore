@@ -4,6 +4,9 @@
 bin/
 obj/
 
+# Debian release files
+Release/Debian/*
+
 # User-specific files
 *.user
 *.suo
