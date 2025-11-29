@@ -27,24 +27,41 @@ namespace GOATracer.Raytracer
             int width = scene.ImageWidth;
             int height = scene.ImageHeight;
 
+            // Needed for anti-aliasing
+            int samplesPerPixel = 4;
+            Random rand = new Random();
+
             // For each pixel in the image
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
                 {
-                    // Compute the ray direction from the camera through the pixel
-                    Vector3 rayDirection = scene.Camera.GetRayDirection(x, y, scene.ImageWidth, scene.ImageHeight);
+                    // Anti-aliasing source: https://computergraphics.stackexchange.com/questions/4248/how-is-anti-aliasing-implemented-in-ray-tracing
+                    Vector3 calculatedColor = Vector3.Zero;
 
-                    // Trace the ray through the scene
-                    Vector3 color = TraceRay(scene.Camera.Position, rayDirection, scene);
+                    for (int s = 0; s < samplesPerPixel; s++)
+                    {
+                        // Add a small random offset within the pixel, jitter the ray so it hits different spots within the pixel
+                        float u = x + (float)rand.NextDouble();
+                        float v = y + (float)rand.NextDouble();
+
+                        // Compute the ray direction from the camera through the jittered pixel position
+                        Vector3 rayDirection = scene.Camera.GetRayDirection(u, v, scene.ImageWidth, scene.ImageHeight);
+
+                        // Trace the ray through the scene
+                        calculatedColor += TraceRay(scene.Camera.Position, rayDirection, scene);
+                    }
+
+                    // Average the color from all samples
+                    Vector3 finalColor = calculatedColor / samplesPerPixel;
 
                     // Get the starting index for this pixel in the 1D buffer
                     int index = (y * width + x) * 4;
 
                     // Convert Vector3 color (0.0-1.0) to BGRA8888 bytes (0-255)
-                    buffer[index] = (byte)(Math.Clamp(color.Z, 0, 1) * 255);     // Blue
-                    buffer[index + 1] = (byte)(Math.Clamp(color.Y, 0, 1) * 255); // Green
-                    buffer[index + 2] = (byte)(Math.Clamp(color.X, 0, 1) * 255); // Red
+                    buffer[index] = (byte)(Math.Clamp(finalColor.Z, 0, 1) * 255);     // Blue
+                    buffer[index + 1] = (byte)(Math.Clamp(finalColor.Y, 0, 1) * 255); // Green
+                    buffer[index + 2] = (byte)(Math.Clamp(finalColor.X, 0, 1) * 255); // Red
                     buffer[index + 3] = 255;
                 }
             }
